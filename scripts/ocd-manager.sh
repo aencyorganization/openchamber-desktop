@@ -252,12 +252,14 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Get package manager with priority
+# Get package manager with priority: bun > pnpm > yarn > npm
 detect_package_manager() {
     if command_exists bun; then
         echo "bun"
     elif command_exists pnpm; then
         echo "pnpm"
+    elif command_exists yarn; then
+        echo "yarn"
     elif command_exists npm; then
         echo "npm"
     else
@@ -270,8 +272,35 @@ pm_display_name() {
     case "$1" in
         bun) echo "Bun (Ultra-fast)" ;;
         pnpm) echo "pnpm (Efficient)" ;;
+        yarn) echo "Yarn (Reliable)" ;;
         npm) echo "npm (Standard)" ;;
         *) echo "Unknown" ;;
+    esac
+}
+
+# Get install command for package manager
+pm_install_cmd() {
+    local pm="$1"
+    local pkg="$2"
+    case "$pm" in
+        bun) echo "bun install -g $pkg" ;;
+        pnpm) echo "pnpm add -g $pkg" ;;
+        yarn) echo "yarn global add $pkg" ;;
+        npm) echo "npm install -g $pkg" ;;
+        *) echo "npm install -g $pkg" ;;
+    esac
+}
+
+# Get uninstall command for package manager
+pm_uninstall_cmd() {
+    local pm="$1"
+    local pkg="$2"
+    case "$pm" in
+        bun) echo "bun uninstall -g $pkg" ;;
+        pnpm) echo "pnpm remove -g $pkg" ;;
+        yarn) echo "yarn global remove $pkg" ;;
+        npm) echo "npm uninstall -g $pkg" ;;
+        *) echo "npm uninstall -g $pkg" ;;
     esac
 }
 
@@ -347,13 +376,15 @@ install_flow() {
             echo -e "  ${BRIGHT_CYAN}Available options:${NC}"
             echo -e "    ${BRIGHT_WHITE}[1]${NC} Bun (Ultra-fast JavaScript runtime)"
             echo -e "    ${BRIGHT_WHITE}[2]${NC} pnpm (Disk space efficient)"
-            echo -e "    ${BRIGHT_WHITE}[3]${NC} npm (Node.js standard)"
+            echo -e "    ${BRIGHT_WHITE}[3]${NC} Yarn (Reliable package manager)"
+            echo -e "    ${BRIGHT_WHITE}[4]${NC} npm (Node.js standard)"
             echo ""
             local choice=$(get_input "Select option" "1")
             case "$choice" in
                 1) pm="bun" ;;
                 2) pm="pnpm" ;;
-                3) pm="npm" ;;
+                3) pm="yarn" ;;
+                4) pm="npm" ;;
                 *) pm="bun" ;;
             esac
         fi
@@ -397,7 +428,7 @@ install_flow() {
         echo ""
         if confirm "Reinstall or update OpenChamber Core?" "n"; then
             (
-                $pm install -g $CORE_PKG 2>&1
+                eval $(pm_install_cmd "$pm" "$CORE_PKG") 2>&1
             ) > /tmp/oc-install.log 2>&1 &
             spinner "Updating OpenChamber Core..." $!
             wait $!
@@ -410,7 +441,7 @@ install_flow() {
         echo ""
         if confirm "Install OpenChamber Core?" "y"; then
             (
-                $pm install -g $CORE_PKG 2>&1
+                eval $(pm_install_cmd "$pm" "$CORE_PKG") 2>&1
             ) > /tmp/oc-install.log 2>&1 &
             spinner "Installing OpenChamber Core..." $!
             wait $!
@@ -430,7 +461,7 @@ install_flow() {
         echo ""
         if confirm "Update to latest version?" "n"; then
             (
-                $pm install -g $PKG_NAME 2>&1
+                eval $(pm_install_cmd "$pm" "$PKG_NAME") 2>&1
             ) > /tmp/ocd-install.log 2>&1 &
             spinner "Updating OCD..." $!
             wait $!
@@ -440,7 +471,7 @@ install_flow() {
         fi
     else
         (
-            $pm install -g $PKG_NAME 2>&1
+            eval $(pm_install_cmd "$pm" "$PKG_NAME") 2>&1
         ) > /tmp/ocd-install.log 2>&1 &
         spinner "Installing OpenChamber Desktop..." $!
         wait $!
@@ -648,7 +679,7 @@ uninstall_flow() {
     if [ -n "$pm" ]; then
         echo ""
         (
-            $pm uninstall -g $PKG_NAME 2>&1
+            eval $(pm_uninstall_cmd "$pm" "$PKG_NAME") 2>&1
         ) > /tmp/ocd-uninstall.log 2>&1 &
         spinner "Removing OpenChamber Desktop..." $!
         wait $!
@@ -661,7 +692,7 @@ uninstall_flow() {
     if confirm "Remove OpenChamber Core too? (not recommended if using other tools)" "n"; then
         if [ -n "$pm" ]; then
             (
-                $pm uninstall -g $CORE_PKG 2>&1
+                eval $(pm_uninstall_cmd "$pm" "$CORE_PKG") 2>&1
             ) > /tmp/oc-uninstall.log 2>&1 &
             spinner "Removing OpenChamber Core..." $!
             wait $!

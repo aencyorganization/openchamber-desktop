@@ -45,6 +45,7 @@ command_works() {
     case "$cmd" in
         bun) "$cmd" --version >/dev/null 2>&1 || return 1 ;;
         pnpm) "$cmd" --version >/dev/null 2>&1 || return 1 ;;
+        yarn) "$cmd" --version >/dev/null 2>&1 || return 1 ;;
         npm) "$cmd" --version >/dev/null 2>&1 || return 1 ;;
         openchamber) "$cmd" --version >/dev/null 2>&1 || return 1 ;;
         *) "$cmd" --help >/dev/null 2>&1 || return 1 ;;
@@ -101,9 +102,9 @@ install_bun() {
     success "Bun installed"
 }
 
-# Detect or install package manager - PRIORITY: Bun > pnpm > npm
+# Detect or install package manager - PRIORITY: Bun > pnpm > yarn > npm
 setup_package_manager() {
-    log "Detecting package manager (priority: Bun > pnpm > npm)..."
+    log "Detecting package manager (priority: Bun > pnpm > yarn > npm)..."
     
     # Priority 1: Bun (check thoroughly)
     if check_bun; then
@@ -122,10 +123,19 @@ setup_package_manager() {
         return 0
     fi
     
-    # Priority 3: npm
+    # Priority 3: yarn
+    if command_works yarn; then
+        local yarn_version=$(yarn --version 2>/dev/null)
+        success "yarn selected (priority 3) - version $yarn_version"
+        PM="yarn"
+        export PM
+        return 0
+    fi
+    
+    # Priority 4: npm
     if command_works npm; then
         local npm_version=$(npm --version 2>/dev/null)
-        success "npm selected (priority 3) - version $npm_version"
+        success "npm selected (priority 4) - version $npm_version"
         PM="npm"
         export PM
         return 0
@@ -138,10 +148,71 @@ setup_package_manager() {
     export PM
 }
 
-# Robust check for OpenChamber
+# Detect Linux distribution family
+detect_distro_family() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        case "$ID" in
+            arch|manjaro|endeavouros|garuda|artix|cachyos)
+                echo "arch"
+                ;;
+            ubuntu|debian|linuxmint|pop|elementary|zorin|kali|parrot|devuan)
+                echo "debian"
+                ;;
+            fedora|rhel|centos|rocky|almalinux|nobara|ultramarine)
+                echo "fedora"
+                ;;
+            opensuse*|suse*)
+                echo "suse"
+                ;;
+            *)
+                echo "unknown"
+                ;;
+        esac
+    elif [ -f /etc/arch-release ]; then
+        echo "arch"
+    elif [ -f /etc/debian_version ]; then
+        echo "debian"
+    elif [ -f /etc/fedora-release ] || [ -f /etc/redhat-release ]; then
+        echo "fedora"
+    else
+        echo "unknown"
+    fi
+}
+
+# Robust check for OpenChamber with distro-specific paths
 check_openchamber() {
     # Check if openchamber command exists and works
     if ! command_works openchamber; then
+        # Check distro-specific installation paths
+        local distro=$(detect_distro_family)
+        local oc_path=""
+        
+        case "$distro" in
+            arch)
+                # Arch Linux: check AUR installation paths
+                oc_path="/usr/bin/openchamber"
+                ;;
+            debian)
+                # Ubuntu/Debian: check common paths
+                oc_path="/usr/local/bin/openchamber"
+                ;;
+            fedora)
+                # Fedora: check common paths
+                oc_path="/usr/local/bin/openchamber"
+                ;;
+        esac
+        
+        # If found in distro-specific path, add to PATH
+        if [ -n "$oc_path" ] && [ -x "$oc_path" ]; then
+            export PATH="$(dirname "$oc_path"):$PATH"
+            if command_works openchamber; then
+                local oc_version=$(openchamber --version 2>/dev/null | head -1)
+                log "OpenChamber detected at $oc_path: $oc_version"
+                return 0
+            fi
+        fi
+        
         return 1
     fi
     
@@ -155,18 +226,36 @@ check_openchamber() {
     return 1
 }
 
-# Install OpenChamber Core only if not present
+# Install OpenChamber Core via detected package manager
 install_openchamber() {
     log "Checking OpenChamber Core..."
     
     if check_openchamber; then
-        warn "OpenChamber already installed via system package manager"
+        warn "OpenChamber already installed"
         log "Skipping OpenChamber installation to avoid conflicts"
         return 0
     fi
     
-    log "Installing OpenChamber Core..."
-    curl -fsSL https://raw.githubusercontent.com/btriapitsyn/openchamber/main/scripts/install.sh | bash
+    log "Installing OpenChamber Core via $PM..."
+    case "$PM" in
+        bun)
+            bun add -g $CORE_PKG
+            ;;
+        pnpm)
+            pnpm add -g $CORE_PKG
+            ;;
+        yarn)
+            yarn global add $CORE_PKG
+            ;;
+        npm)
+            npm install -g $CORE_PKG
+            ;;
+        *)
+            # Fallback to remote install script if no PM detected
+            log "Installing via remote script..."
+            curl -fsSL https://raw.githubusercontent.com/btriapitsyn/openchamber/main/scripts/install.sh | bash
+            ;;
+    esac
     success "OpenChamber Core installed"
 }
 
@@ -182,6 +271,7 @@ install_ocd() {
     case "$PM" in
         bun) bun install -g $PKG_NAME ;;
         pnpm) pnpm add -g $PKG_NAME ;;
+        yarn) yarn global add $PKG_NAME ;;
         npm) npm install -g $PKG_NAME ;;
     esac
     success "OCD installed/updated"
