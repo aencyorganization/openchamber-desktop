@@ -4,15 +4,37 @@
 # Pure Bash - No external dependencies
 # Usage: curl -fsSL .../ocd-manager.sh | bash
 
-# Reopen stdin from terminal (fixes curl | bash closing immediately)
-if [ -t 0 ]; then
-    : # stdin is already a terminal
-else
-    exec 0</dev/tty 2>/dev/null || {
-        echo "ERROR: Cannot access terminal for interactive input."
-        echo "Alternative: curl -fsSL .../ocd-manager.sh > /tmp/ocd.sh && bash /tmp/ocd.sh"
+# Check if we're running from a pipe (curl | bash)
+if [ ! -t 0 ]; then
+    # We're being piped, need to save to file first for reliability
+    TMP_SCRIPT="/tmp/ocd-manager-$$.sh"
+    
+    # Copy stdin to temp file
+    cat > "$TMP_SCRIPT" 2>/dev/null || {
+        echo "ERROR: Cannot write to temporary file"
+        echo "Try: curl -fsSL <url> > ~/ocd-manager.sh && bash ~/ocd-manager.sh"
         exit 1
     }
+    
+    # Check if we got the full script
+    if [ ! -s "$TMP_SCRIPT" ] || [ $(wc -l < "$TMP_SCRIPT") -lt 10 ]; then
+        echo "ERROR: Download incomplete"
+        rm -f "$TMP_SCRIPT"
+        exit 1
+    fi
+    
+    # Reopen stdin from terminal for interactive prompts
+    exec 0</dev/tty 2>/dev/null || {
+        echo "ERROR: Cannot access terminal for interactive input."
+        echo "Run without pipe: bash $TMP_SCRIPT"
+        exit 1
+    }
+    
+    # Execute the saved script
+    bash "$TMP_SCRIPT"
+    EXIT_CODE=$?
+    rm -f "$TMP_SCRIPT"
+    exit $EXIT_CODE
 fi
 
 # Colors - Extended palette
