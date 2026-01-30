@@ -75,17 +75,19 @@ setup_package_manager() {
     export PM
 }
 
-# Install or update OpenChamber Core
+# Install OpenChamber Core only if not present
 install_openchamber() {
     log "Checking OpenChamber Core..."
     
     if command_exists openchamber; then
-        warn "OpenChamber already installed, updating..."
+        warn "OpenChamber already installed via system package manager"
+        log "Skipping OpenChamber installation to avoid conflicts"
+        return 0
     fi
     
     log "Installing OpenChamber Core..."
     curl -fsSL https://raw.githubusercontent.com/btriapitsyn/openchamber/main/scripts/install.sh | bash
-    success "OpenChamber Core installed/updated"
+    success "OpenChamber Core installed"
 }
 
 # Install or update OCD

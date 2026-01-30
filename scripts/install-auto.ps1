@@ -54,12 +54,14 @@ function Setup-PackageManager {
     }
 }
 
-# Install or update OpenChamber Core
+# Install OpenChamber Core only if not present
 function Install-OpenChamber($pm) {
     Write-Info "Checking OpenChamber Core..."
     
     if (Test-Command "openchamber") {
-        Write-Warn "OpenChamber already installed, updating..."
+        Write-Warn "OpenChamber already installed via system package manager"
+        Write-Info "Skipping OpenChamber installation to avoid conflicts"
+        return
     }
     
     Write-Info "Installing OpenChamber Core via $pm..."
@@ -68,7 +70,7 @@ function Install-OpenChamber($pm) {
         "pnpm" { pnpm add -g $CORE_PKG }
         "npm" { npm install -g $CORE_PKG }
     }
-    Write-Success "OpenChamber Core installed/updated"
+    Write-Success "OpenChamber Core installed"
 }
 
 # Install or update OCD
