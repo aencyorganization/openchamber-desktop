@@ -121,6 +121,7 @@ Type=Application
 Categories=Utility;Development;
 Terminal=false
 Keywords=OpenChamber;Desktop;
+StartupWMClass=openchamber-launcher
 EOF
     chmod 644 "$DESKTOP_FILE"
 
@@ -222,6 +223,23 @@ main() {
         
         popd > /dev/null
         rm -rf "$temp_dir"
+    fi
+
+    # Create symlink for binary with correct name (fixes "Neutralino X64" showing in taskbar)
+    info "Creating binary symlink with app name..."
+    local detected_arch
+    detected_arch=$(uname -m)
+    local binary_name
+    case "$detected_arch" in
+        x86_64) binary_name="neutralino-linux_x64" ;;
+        aarch64|arm64) binary_name="neutralino-linux_arm64" ;;
+        armv7l|armhf) binary_name="neutralino-linux_armhf" ;;
+        *) binary_name="neutralino-linux_x64" ;;
+    esac
+    
+    if [ -f "$INSTALL_DIR/bin/$binary_name" ]; then
+        ln -sf "$INSTALL_DIR/bin/$binary_name" "$INSTALL_DIR/bin/openchamber-launcher"
+        info "Created symlink: openchamber-launcher -> $binary_name"
     fi
 
     # Create launcher script

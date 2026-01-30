@@ -25,7 +25,7 @@
       "center": true,
       "fullScreen": false,
       "alwaysOnTop": false,
-      "icon": "/assets/openchamber-logo-dark.png",
+      "icon": "assets/openchamber-logo-dark.png",
       "enableInspector": false,
       "borderless": false,
       "maximize": false,

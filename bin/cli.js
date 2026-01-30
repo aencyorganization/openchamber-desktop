@@ -156,8 +156,10 @@ function main() {
     }
   }
   
-  const binaryName = getBinaryName();
-  const binaryPath = path.join(__dirname, binaryName);
+  // Try to use the branded binary name first (for correct process name in taskbar)
+  const brandedBinary = path.join(__dirname, 'openchamber-launcher');
+  const fallbackBinary = path.join(__dirname, getBinaryName());
+  const binaryPath = fs.existsSync(brandedBinary) ? brandedBinary : fallbackBinary;
   
   // Check if binary exists
   if (!fs.existsSync(binaryPath)) {
