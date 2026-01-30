@@ -45,3 +45,12 @@ bin/*.dylib
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# Publishing guide (internal)
+docs/PUBLISHING.md
+scripts/build/publish-npm.sh
+
+# Temp files in root
+*.AppImage
+OpenChamber*.AppImage
+neutralinojs.log

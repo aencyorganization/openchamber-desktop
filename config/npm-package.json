@@ -10,10 +10,8 @@
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
     "start": "node bin/cli.js",
-    "dev": "neu run",
     "build": "neu build",
-    "build:release": "neu build --release",
-    "build:appimage": "node scripts/build/build-appimage.js"
+    "build:release": "neu build --release"
   },
   "keywords": [
     "openchamber",
