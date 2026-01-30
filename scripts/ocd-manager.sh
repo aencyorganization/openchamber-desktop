@@ -1,375 +1,384 @@
 #!/bin/bash
 
-# OpenChamber Desktop (OCD) Manager with Gum
-# Beautiful TUI installer using Charm.sh Gum
+# OpenChamber Desktop (OCD) Manager
+# Pure Bash - No external dependencies
 # Usage: curl -fsSL .../ocd-manager.sh | bash
 
 set -e
 
-# Colors for fallback (when gum is not available)
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 CYAN='\033[0;36m'
+WHITE='\033[1;37m'
 NC='\033[0m'
+BOLD='\033[1m'
 
-# Configuration
+# App config
 APP_NAME="OpenChamber Desktop"
 PKG_NAME="openchamber-desktop"
 CORE_PKG="@openchamber/web"
-REPO_URL="https://github.com/aencyorganization/openchamber-desktop"
+VERSION="2.0.0"
 
-# Check and install Gum
-check_install_gum() {
-    if command -v gum &> /dev/null; then
-        return 0
-    fi
-    
-    echo -e "${CYAN}Installing Gum (Charm.sh)...${NC}"
-    
-    # Detect OS and architecture
-    OS=$(uname -s)
-    ARCH=$(uname -m)
-    
-    # Map architecture names
-    case "$ARCH" in
-        x86_64) ARCH="x86_64" ;;
-        amd64) ARCH="x86_64" ;;
-        arm64) ARCH="arm64" ;;
-        aarch64) ARCH="arm64" ;;
-        armv7l) ARCH="armv7" ;;
-    esac
-    
-    # Map OS names
-    case "$OS" in
-        Linux) OS="Linux" ;;
-        Darwin) OS="Darwin" ;;
-    esac
-    
-    # Download Gum
-    GUM_VERSION="0.17.0"
-    GUM_URL="https://github.com/charmbracelet/gum/releases/download/v${GUM_VERSION}/gum_${GUM_VERSION}_${OS}_${ARCH}.tar.gz"
-    
-    TMP_DIR=$(mktemp -d)
-    if curl -fsSL "$GUM_URL" -o "$TMP_DIR/gum.tar.gz" 2>/dev/null; then
-        tar -xzf "$TMP_DIR/gum.tar.gz" -C "$TMP_DIR" 2>/dev/null
-        if [ -f "$TMP_DIR/gum" ]; then
-            # Try to install to /usr/local/bin, fallback to ~/.local/bin
-            if [ -w "/usr/local/bin" ]; then
-                mv "$TMP_DIR/gum" /usr/local/bin/gum
-                chmod +x /usr/local/bin/gum
-            elif [ -d "$HOME/.local/bin" ]; then
-                mv "$TMP_DIR/gum" "$HOME/.local/bin/gum"
-                chmod +x "$HOME/.local/bin/gum"
-                export PATH="$HOME/.local/bin:$PATH"
-            else
-                # Use from temp directory
-                export PATH="$TMP_DIR:$PATH"
-            fi
-            echo -e "${GREEN}✓ Gum installed${NC}"
-        fi
-    else
-        echo -e "${YELLOW}⚠ Could not install Gum, using fallback mode${NC}"
-        USE_FALLBACK=1
-    fi
-    
-    rm -rf "$TMP_DIR"
+# Clear screen and show header
+clear_screen() {
+    clear
+    echo -e "${CYAN}"
+    echo "  ██████╗  ██████╗ ██████╗"
+    echo " ██╔═══██╗██╔════╝██╔═══██╗"
+    echo " ██║   ██║██║     ██║   ██║"
+    echo " ██║   ██║██║     ██║   ██║"
+    echo " ╚██████╔╝╚██████╗╚██████╔╝"
+    echo "  ╚═════╝  ╚═════╝ ╚═════╝"
+    echo -e "${WHITE}  ${APP_NAME} Manager v${VERSION}${NC}"
+    echo ""
 }
 
-# Header with Gum or fallback
-show_header() {
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        gum style \
-            --border double \
-            --border-foreground 212 \
-            --align center \
-            --width 50 \
-            --margin "1 2" \
-            --padding "1 2" \
-            "OpenChamber Desktop" "Manager"
-    else
-        clear
-        echo -e "${CYAN}"
-        echo "  ██████╗  ██████╗██████╗ "
-        echo " ██╔═══██╗██╔════╝██╔══██╗"
-        echo " ██║   ██║██║     ██║  ██║"
-        echo " ██║   ██║██║     ██║  ██║"
-        echo " ╚██████╔╝╚██████╗██████╔╝"
-        echo "  ╚═════╝  ╚═════╝╚═════╝ "
-        echo -e "   ${APP_NAME}${NC}"
-        echo ""
-    fi
+# Draw box
+draw_box() {
+    local text="$1"
+    local width=50
+    local padding=2
+    
+    echo -e "${CYAN}╔$(printf '═%.0s' $(seq 1 $width))╗${NC}"
+    echo -e "${CYAN}║${NC}$(printf '%*s' $padding '')${WHITE}${text}$(printf '%*s' $((width - ${#text} - padding)) '')${NC}${CYAN}║${NC}"
+    echo -e "${CYAN}╚$(printf '═%.0s' $(seq 1 $width))╝${NC}"
 }
 
-# Menu with Gum or fallback
+# Show menu
 show_menu() {
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        CHOICE=$(gum choose \
-            --header "Select an option:" \
-            --header.foreground 212 \
-            "📦 Install/Update OCD" \
-            "🗑️  Uninstall" \
-            "ℹ️  System Info" \
-            "🚪 Exit")
-        echo "$CHOICE"
+    clear_screen
+    draw_box "MAIN MENU"
+    echo ""
+    echo -e "  ${CYAN}[1]${NC} 📦  Install / Update OCD"
+    echo -e "  ${CYAN}[2]${NC} 🗑️   Uninstall"
+    echo -e "  ${CYAN}[3]${NC} ℹ️   System Info"
+    echo -e "  ${CYAN}[4]${NC} 🚪  Exit"
+    echo ""
+    echo -e "  ${YELLOW}Use arrow keys or type number [1-4]${NC}"
+    echo ""
+}
+
+# Get input with prompt
+get_input() {
+    local prompt="$1"
+    local default="$2"
+    
+    echo -ne "${CYAN}${prompt}${NC}"
+    if [ -n "$default" ]; then
+        echo -ne " [${YELLOW}${default}${NC}]: "
     else
-        echo ""
-        echo -e "${CYAN}1)${NC} 📦 Install/Update OCD"
-        echo -e "${CYAN}2)${NC} 🗑️  Uninstall"
-        echo -e "${CYAN}3)${NC} ℹ️  System Info"
-        echo -e "${CYAN}4)${NC} 🚪 Exit"
-        echo ""
-        read -p "Select option [1-4]: " choice
-        case $choice in
-            1) echo "📦 Install/Update OCD" ;;
-            2) echo "🗑️  Uninstall" ;;
-            3) echo "ℹ️  System Info" ;;
-            4) echo "🚪 Exit" ;;
-        esac
+        echo -ne ": "
     fi
+    
+    read input
+    if [ -z "$input" ] && [ -n "$default" ]; then
+        input="$default"
+    fi
+    echo "$input"
+}
+
+# Yes/No prompt
+confirm() {
+    local prompt="$1"
+    local default="${2:-y}"
+    
+    while true; do
+        echo -ne "${CYAN}${prompt}${NC} "
+        if [ "$default" = "y" ]; then
+            echo -ne "[${GREEN}Y${NC}/${RED}n${NC}]: "
+        else
+            echo -ne "[${GREEN}y${NC}/${RED}N${NC}]: "
+        fi
+        
+        read answer
+        answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+        
+        if [ -z "$answer" ]; then
+            answer="$default"
+        fi
+        
+        case "$answer" in
+            y|yes) return 0 ;;
+            n|no) return 1 ;;
+        esac
+    done
+}
+
+# Spinner for long operations
+spinner() {
+    local msg="$1"
+    local pid=$2
+    local delay=0.1
+    local spinstr='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+    
+    echo -ne "${CYAN}${msg} ${NC}"
+    while kill -0 "$pid" 2>/dev/null; do
+        for i in $(seq 0 $((${#spinstr}-1))); do
+            printf "${CYAN}%s${NC}\b" "${spinstr:$i:1}"
+            sleep $delay
+        done
+    done
+    printf "   \b\b\b"
+    echo -e "${GREEN}✓${NC}"
+}
+
+# Check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
 }
 
 # Get package manager
 get_package_manager() {
-    if command -v bun &> /dev/null; then
+    if command_exists bun; then
         echo "bun"
-    elif command -v pnpm &> /dev/null; then
+    elif command_exists pnpm; then
         echo "pnpm"
-    elif command -v npm &> /dev/null; then
+    elif command_exists npm; then
         echo "npm"
     else
         echo ""
     fi
 }
 
-# Install package manager
-install_package_manager() {
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        gum spin --spinner dot --title "Installing Bun..." -- \
-            bash -c 'curl -fsSL https://bun.sh/install | bash'
-    else
-        echo -e "${CYAN}Installing Bun...${NC}"
-        curl -fsSL https://bun.sh/install | bash
-    fi
+# Install Bun
+install_bun() {
+    clear_screen
+    draw_box "INSTALLING BUN"
+    echo ""
     
-    # Source bun
+    (
+        curl -fsSL https://bun.sh/install | bash
+    ) &
+    local pid=$!
+    spinner "Installing Bun..." $pid
+    wait $pid
+    
     export BUN_INSTALL="$HOME/.bun"
     export PATH="$BUN_INSTALL/bin:$PATH"
+    
+    echo -e "${GREEN}✓ Bun installed successfully${NC}"
+    sleep 1
 }
 
-# Install flow with Gum
+# Install flow
 install_flow() {
-    show_header
+    clear_screen
+    draw_box "INSTALL / UPDATE OCD"
+    echo ""
     
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        # Step 1: Choose package manager
-        PM=$(gum choose \
-            --header "Select package manager:" \
-            "🥟 Bun (Recommended - Fastest)" \
-            "📦 pnpm" \
-            "📦 npm" \
-            "🔍 Auto-detect")
-        
-        # Extract just the name
-        case "$PM" in
-            *Bun*) PM="bun" ;;
-            *pnpm*) PM="pnpm" ;;
-            *npm*) PM="npm" ;;
-            *Auto*) PM="auto" ;;
-        esac
-    else
-        echo ""
-        echo -e "${CYAN}Select package manager:${NC}"
-        echo "1) 🥟 Bun (Recommended - Fastest)"
-        echo "2) 📦 pnpm"
-        echo "3) 📦 npm"
-        echo "4) 🔍 Auto-detect"
-        read -p "[1-4]: " pm_choice
-        case $pm_choice in
-            1) PM="bun" ;;
-            2) PM="pnpm" ;;
-            3) PM="npm" ;;
-            4) PM="auto" ;;
-        esac
-    fi
+    # Step 1: Package Manager
+    echo -e "${CYAN}Step 1/5: Package Manager${NC}"
+    echo ""
     
-    # Auto-detect or install
-    if [ "$PM" = "auto" ] || [ -z "$PM" ]; then
-        PM=$(get_package_manager)
-        if [ -z "$PM" ]; then
-            install_package_manager
-            PM="bun"
-        fi
-    elif [ "$PM" = "bun" ] && ! command -v bun &> /dev/null; then
-        install_package_manager
-    fi
+    local pm=$(get_package_manager)
     
-    # Show selected
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        gum style --foreground 212 "Using: $PM"
-    else
-        echo -e "${GREEN}Using: $PM${NC}"
-    fi
-    
-    # Step 2: Check/OpenChamber
-    if ! command -v openchamber &> /dev/null; then
-        if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-            gum spin --spinner dot --title "Installing OpenChamber Core..." -- \
-                bash -c "$PM install -g $CORE_PKG"
-            gum style --foreground 82 "✓ OpenChamber Core installed"
+    if [ -n "$pm" ]; then
+        echo -e "Found: ${GREEN}${pm}${NC}"
+        if confirm "Use ${pm}?" "y"; then
+            :
         else
-            echo -e "${CYAN}Installing OpenChamber Core...${NC}"
-            $PM install -g $CORE_PKG
+            echo ""
+            echo -e "${CYAN}Select package manager:${NC}"
+            echo "  [1] Bun (Fastest)"
+            echo "  [2] pnpm"
+            echo "  [3] npm"
+            echo ""
+            local choice=$(get_input "Choice" "1")
+            case "$choice" in
+                1) pm="bun" ;;
+                2) pm="pnpm" ;;
+                3) pm="npm" ;;
+                *) pm="bun" ;;
+            esac
+        fi
+    else
+        echo -e "${YELLOW}No package manager found${NC}"
+        if confirm "Install Bun?" "y"; then
+            install_bun
+            pm="bun"
+        else
+            echo -e "${RED}Cannot continue without package manager${NC}"
+            sleep 2
+            return
+        fi
+    fi
+    
+    # Install selected PM if needed
+    if [ "$pm" = "bun" ] && ! command_exists bun; then
+        install_bun
+    fi
+    
+    echo -e "${GREEN}✓ Using: ${pm}${NC}"
+    sleep 0.5
+    
+    # Step 2: OpenChamber Core
+    echo ""
+    echo -e "${CYAN}Step 2/5: OpenChamber Core${NC}"
+    
+    if command_exists openchamber; then
+        echo -e "${GREEN}✓ OpenChamber already installed${NC}"
+        local oc_version=$(openchamber --version 2>/dev/null || echo "unknown")
+        echo "  Version: ${oc_version}"
+        if confirm "Reinstall/Update?" "n"; then
+            (
+                $pm install -g $CORE_PKG
+            ) &
+            spinner "Updating OpenChamber..." $!
+            wait $!
+        fi
+    else
+        if confirm "Install OpenChamber Core?" "y"; then
+            (
+                $pm install -g $CORE_PKG
+            ) &
+            spinner "Installing OpenChamber..." $!
+            wait $!
             echo -e "${GREEN}✓ OpenChamber Core installed${NC}"
         fi
-    else
-        if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-            gum style --foreground 82 "✓ OpenChamber already installed"
-        else
-            echo -e "${GREEN}✓ OpenChamber already installed${NC}"
-        fi
     fi
+    sleep 0.5
     
-    # Step 3: Install OCD
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        gum spin --spinner dot --title "Installing OCD..." -- \
-            bash -c "$PM install -g $PKG_NAME"
-        gum style --foreground 82 "✓ OCD installed"
+    # Step 3: OCD
+    echo ""
+    echo -e "${CYAN}Step 3/5: OpenChamber Desktop${NC}"
+    
+    if command_exists $PKG_NAME; then
+        echo -e "${GREEN}✓ OCD already installed${NC}"
+        if confirm "Update OCD?" "n"; then
+            (
+                $pm install -g $PKG_NAME
+            ) &
+            spinner "Updating OCD..." $!
+            wait $!
+        fi
     else
-        echo -e "${CYAN}Installing OCD...${NC}"
-        $PM install -g $PKG_NAME
+        (
+            $pm install -g $PKG_NAME
+        ) &
+        spinner "Installing OCD..." $!
+        wait $!
         echo -e "${GREEN}✓ OCD installed${NC}"
     fi
+    sleep 0.5
     
     # Step 4: Aliases
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        ALIASES=$(gum choose --no-limit \
-            --header "Select aliases to create:" \
-            "ocd" \
-            "openchamber-desktop" \
-            "custom")
-    else
-        echo ""
-        echo -e "${CYAN}Create aliases?${NC}"
-        read -p "ocd [Y/n]: " a1
-        read -p "openchamber-desktop [Y/n]: " a2
-        ALIASES=""
-        [[ ! "$a1" =~ ^[Nn]$ ]] && ALIASES="ocd"
-        [[ ! "$a2" =~ ^[Nn]$ ]] && ALIASES="$ALIASES openchamber-desktop"
-    fi
+    echo ""
+    echo -e "${CYAN}Step 4/5: Shell Aliases${NC}"
     
-    # Add custom alias
-    if echo "$ALIASES" | grep -q "custom"; then
-        if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-            CUSTOM=$(gum input --placeholder "Enter custom alias name")
-        else
-            read -p "Enter custom alias name: " CUSTOM
+    if confirm "Create shell aliases?" "y"; then
+        local shell_config=""
+        if [ -f "$HOME/.zshrc" ]; then
+            shell_config="$HOME/.zshrc"
+        elif [ -f "$HOME/.bashrc" ]; then
+            shell_config="$HOME/.bashrc"
         fi
-        ALIASES=$(echo "$ALIASES" | sed 's/custom//')
-        ALIASES="$ALIASES $CUSTOM"
-    fi
-    
-    # Add to shell config
-    SHELL_CONFIG=""
-    if [ -f "$HOME/.zshrc" ]; then SHELL_CONFIG="$HOME/.zshrc"
-    elif [ -f "$HOME/.bashrc" ]; then SHELL_CONFIG="$HOME/.bashrc"
-    fi
-    
-    if [ -n "$SHELL_CONFIG" ]; then
-        for alias in $ALIASES; do
-            if ! grep -q "alias $alias=" "$SHELL_CONFIG" 2>/dev/null; then
-                echo "alias $alias='$PKG_NAME'" >> "$SHELL_CONFIG"
+        
+        if [ -n "$shell_config" ]; then
+            local aliases_added=""
+            
+            if confirm "Create alias 'ocd'?" "y"; then
+                if ! grep -q "alias ocd=" "$shell_config" 2>/dev/null; then
+                    echo "alias ocd='$PKG_NAME'" >> "$shell_config"
+                    aliases_added="$aliases_added ocd"
+                fi
             fi
-        done
-        if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-            gum style --foreground 82 "✓ Aliases added to $(basename $SHELL_CONFIG)"
+            
+            if confirm "Create alias 'openchamber-desktop'?" "y"; then
+                if ! grep -q "alias openchamber-desktop=" "$shell_config" 2>/dev/null; then
+                    echo "alias openchamber-desktop='$PKG_NAME'" >> "$shell_config"
+                    aliases_added="$aliases_added openchamber-desktop"
+                fi
+            fi
+            
+            if confirm "Create custom alias?" "n"; then
+                local custom=$(get_input "Alias name")
+                if [ -n "$custom" ]; then
+                    echo "alias $custom='$PKG_NAME'" >> "$shell_config"
+                    aliases_added="$aliases_added $custom"
+                fi
+            fi
+            
+            if [ -n "$aliases_added" ]; then
+                echo -e "${GREEN}✓ Aliases added:${aliases_added}${NC}"
+                echo -e "${YELLOW}  Run: source ${shell_config}${NC}"
+            fi
         else
-            echo -e "${GREEN}✓ Aliases added${NC}"
+            echo -e "${RED}✗ No shell config found (.bashrc or .zshrc)${NC}"
         fi
     fi
+    sleep 0.5
     
     # Step 5: Shortcuts
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        if gum confirm "Create desktop shortcuts?"; then
-            create_shortcuts
-        fi
-    else
-        read -p "Create desktop shortcuts? [Y/n]: " sc
-        [[ ! "$sc" =~ ^[Nn]$ ]] && create_shortcuts
+    echo ""
+    echo -e "${CYAN}Step 5/5: Desktop Shortcuts${NC}"
+    
+    if confirm "Create desktop shortcuts?" "y"; then
+        create_shortcuts
     fi
     
-    # Success message
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        gum style \
-            --border double \
-            --border-foreground 82 \
-            --align center \
-            --width 40 \
-            --margin "1 2" \
-            --padding "1 2" \
-            "✓ Installation Complete!" \
-            "" \
-            "Run 'ocd' to start"
-    else
-        echo ""
-        echo -e "${GREEN}✓ Installation Complete!${NC}"
-        echo -e "Run ${CYAN}ocd${NC} to start"
-    fi
-    
-    read -p "Press Enter to continue..."
+    # Done
+    clear_screen
+    draw_box "INSTALLATION COMPLETE"
+    echo ""
+    echo -e "${GREEN}✓ OpenChamber Desktop is ready!${NC}"
+    echo ""
+    echo -e "  ${CYAN}Run:${NC} ${WHITE}ocd${NC} or ${WHITE}openchamber-desktop${NC}"
+    echo ""
+    echo -e "  ${YELLOW}Press Enter to continue...${NC}"
+    read
 }
 
 # Create desktop shortcuts
 create_shortcuts() {
-    OS=$(uname -s)
-    ICON_PATH="$HOME/.config/openchamber/icon.png"
+    local os=$(uname -s)
+    local icon_dir="$HOME/.config/openchamber"
+    local icon_path="$icon_dir/icon.png"
     
-    # Ensure icon directory exists
-    mkdir -p "$HOME/.config/openchamber"
+    mkdir -p "$icon_dir"
     
-    # Download icon if not present
-    if [ ! -f "$ICON_PATH" ]; then
-        curl -fsSL "https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/assets/openchamber-logo-dark.png" -o "$ICON_PATH" 2>/dev/null || true
+    # Download icon
+    if [ ! -f "$icon_path" ]; then
+        (
+            curl -fsSL "https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/assets/openchamber-logo-dark.png" -o "$icon_path" 2>/dev/null
+        ) &
+        spinner "Downloading icon..." $!
+        wait $!
     fi
     
-    if [ "$OS" = "Linux" ]; then
-        # Create .desktop entry
-        ENTRY_PATH="$HOME/.local/share/applications/ocd.desktop"
-        mkdir -p "$(dirname "$ENTRY_PATH")"
+    if [ "$os" = "Linux" ]; then
+        local desktop_path="$HOME/.local/share/applications/ocd.desktop"
+        mkdir -p "$(dirname "$desktop_path")"
         
-        cat > "$ENTRY_PATH" <<EOF
+        cat > "$desktop_path" <<EOF
 [Desktop Entry]
 Name=$APP_NAME
 Comment=OpenChamber Desktop Launcher
 Exec=$PKG_NAME
-Icon=$ICON_PATH
+Icon=$icon_path
 Terminal=false
 Type=Application
 Categories=Development;Utility;
 StartupNotify=false
 EOF
-        chmod +x "$ENTRY_PATH"
+        chmod +x "$desktop_path"
+        echo -e "${GREEN}✓ Desktop entry created${NC}"
         
-        if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-            gum style --foreground 82 "✓ Desktop entry created"
-        else
-            echo -e "${GREEN}✓ Desktop entry created${NC}"
-        fi
+    elif [ "$os" = "Darwin" ]; then
+        local app_path="$HOME/Applications/$APP_NAME.app"
+        mkdir -p "$app_path/Contents/MacOS"
+        mkdir -p "$app_path/Contents/Resources"
         
-    elif [ "$OS" = "Darwin" ]; then
-        # macOS app bundle
-        APP_PATH="$HOME/Applications/$APP_NAME.app"
-        mkdir -p "$APP_PATH/Contents/MacOS"
-        mkdir -p "$APP_PATH/Contents/Resources"
-        
-        cat > "$APP_PATH/Contents/MacOS/launcher" <<EOF
+        cat > "$app_path/Contents/MacOS/launcher" <<'EOF'
 #!/bin/bash
-export PATH="/usr/local/bin:/opt/homebrew/bin:\$HOME/.bun/bin:\$PATH"
-$PKG_NAME
+export PATH="/usr/local/bin:/opt/homebrew/bin:$HOME/.bun/bin:$PATH"
+exec openchamber-desktop
 EOF
-        chmod +x "$APP_PATH/Contents/MacOS/launcher"
+        chmod +x "$app_path/Contents/MacOS/launcher"
         
-        cat > "$APP_PATH/Contents/Info.plist" <<EOF
+        cat > "$app_path/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -388,168 +397,150 @@ EOF
 </plist>
 EOF
         
-        [ -f "$ICON_PATH" ] && cp "$ICON_PATH" "$APP_PATH/Contents/Resources/icon.png"
-        
-        if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-            gum style --foreground 82 "✓ App bundle created in ~/Applications"
-        else
-            echo -e "${GREEN}✓ App bundle created${NC}"
-        fi
+        [ -f "$icon_path" ] && cp "$icon_path" "$app_path/Contents/Resources/icon.png"
+        echo -e "${GREEN}✓ App bundle created in ~/Applications${NC}"
     fi
 }
 
 # Uninstall flow
 uninstall_flow() {
-    show_header
+    clear_screen
+    draw_box "UNINSTALL"
+    echo ""
     
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        if ! gum confirm --affirmative "Yes, uninstall" --negative "Cancel" "Are you sure you want to uninstall?"; then
-            return
-        fi
-    else
-        read -p "Are you sure? Type 'yes' to confirm: " confirm
-        [ "$confirm" != "yes" ] && return
+    echo -e "${RED}This will remove:${NC}"
+    echo "  • OpenChamber Desktop (OCD)"
+    echo "  • Desktop shortcuts"
+    echo "  • Shell aliases"
+    echo ""
+    
+    local confirm_text=$(get_input "Type 'yes' to confirm" "")
+    if [ "$confirm_text" != "yes" ]; then
+        echo -e "${YELLOW}Uninstall cancelled${NC}"
+        sleep 1
+        return
     fi
     
-    PM=$(get_package_manager)
+    local pm=$(get_package_manager)
     
     # Remove OCD
-    if [ -n "$PM" ]; then
-        if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-            gum spin --spinner dot --title "Removing OCD..." -- \
-                bash -c "$PM uninstall -g $PKG_NAME 2>/dev/null || true"
-            gum style --foreground 212 "✓ OCD removed"
-        else
-            echo -e "${CYAN}Removing OCD...${NC}"
-            $PM uninstall -g $PKG_NAME 2>/dev/null || true
-            echo -e "${GREEN}✓ OCD removed${NC}"
-        fi
+    if [ -n "$pm" ]; then
+        echo ""
+        (
+            $pm uninstall -g $PKG_NAME 2>/dev/null || true
+        ) &
+        spinner "Removing OCD..." $!
+        wait $!
+        echo -e "${GREEN}✓ OCD removed${NC}"
     fi
     
     # Ask about core
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        if gum confirm "Remove OpenChamber Core too?"; then
-            gum spin --spinner dot --title "Removing Core..." -- \
-                bash -c "$PM uninstall -g $CORE_PKG 2>/dev/null || true"
-            gum style --foreground 212 "✓ Core removed"
-        fi
-    else
-        read -p "Remove OpenChamber Core too? [y/N]: " rm_core
-        if [[ "$rm_core" =~ ^[Yy]$ ]]; then
-            $PM uninstall -g $CORE_PKG 2>/dev/null || true
+    echo ""
+    if confirm "Remove OpenChamber Core too?" "n"; then
+        if [ -n "$pm" ]; then
+            (
+                $pm uninstall -g $CORE_PKG 2>/dev/null || true
+            ) &
+            spinner "Removing Core..." $!
+            wait $!
             echo -e "${GREEN}✓ Core removed${NC}"
         fi
     fi
     
     # Remove shortcuts
-    OS=$(uname -s)
-    if [ "$OS" = "Linux" ]; then
+    echo ""
+    local os=$(uname -s)
+    if [ "$os" = "Linux" ]; then
         rm -f "$HOME/.local/share/applications/ocd.desktop"
-    elif [ "$OS" = "Darwin" ]; then
+        echo -e "${GREEN}✓ Desktop entry removed${NC}"
+    elif [ "$os" = "Darwin" ]; then
         rm -rf "$HOME/Applications/$APP_NAME.app"
+        echo -e "${GREEN}✓ App bundle removed${NC}"
     fi
     
     # Remove aliases
-    SHELL_CONFIG=""
-    if [ -f "$HOME/.zshrc" ]; then SHELL_CONFIG="$HOME/.zshrc"
-    elif [ -f "$HOME/.bashrc" ]; then SHELL_CONFIG="$HOME/.bashrc"
+    local shell_config=""
+    if [ -f "$HOME/.zshrc" ]; then
+        shell_config="$HOME/.zshrc"
+    elif [ -f "$HOME/.bashrc" ]; then
+        shell_config="$HOME/.bashrc"
     fi
     
-    if [ -n "$SHELL_CONFIG" ]; then
-        sed -i '/alias ocd=/d' "$SHELL_CONFIG" 2>/dev/null || sed -i '' '/alias ocd=/d' "$SHELL_CONFIG" 2>/dev/null || true
-        sed -i '/alias openchamber-desktop=/d' "$SHELL_CONFIG" 2>/dev/null || sed -i '' '/alias openchamber-desktop=/d' "$SHELL_CONFIG" 2>/dev/null || true
+    if [ -n "$shell_config" ]; then
+        sed -i '/alias ocd=/d' "$shell_config" 2>/dev/null || true
+        sed -i '/alias openchamber-desktop=/d' "$shell_config" 2>/dev/null || true
+        echo -e "${GREEN}✓ Aliases removed${NC}"
     fi
     
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        gum style \
-            --border double \
-            --border-foreground 212 \
-            --align center \
-            --width 40 \
-            --margin "1 2" \
-            --padding "1 2" \
-            "✓ Uninstall Complete"
-    else
-        echo -e "${GREEN}✓ Uninstall Complete${NC}"
-    fi
-    
-    read -p "Press Enter to continue..."
+    echo ""
+    draw_box "UNINSTALL COMPLETE"
+    sleep 1
 }
 
 # System info
 system_info() {
-    show_header
+    clear_screen
+    draw_box "SYSTEM INFORMATION"
+    echo ""
     
-    OS=$(uname -s)
-    ARCH=$(uname -m)
-    PM=$(get_package_manager || echo "None")
+    local os=$(uname -s)
+    local arch=$(uname -m)
+    local pm=$(get_package_manager)
     
-    if command -v openchamber &> /dev/null; then
-        OC_VER=$(openchamber --version 2>/dev/null || echo "Installed")
+    echo -e "  ${CYAN}Operating System:${NC}  ${WHITE}${os}${NC}"
+    echo -e "  ${CYAN}Architecture:${NC}      ${WHITE}${arch}${NC}"
+    echo -e "  ${CYAN}Package Manager:${NC}   ${WHITE}${pm:-None}${NC}"
+    echo ""
+    
+    if command_exists openchamber; then
+        local oc_ver=$(openchamber --version 2>/dev/null || echo "Installed")
+        echo -e "  ${CYAN}OpenChamber:${NC}       ${GREEN}${oc_ver}${NC}"
     else
-        OC_VER="Not Installed"
+        echo -e "  ${CYAN}OpenChamber:${NC}       ${RED}Not installed${NC}"
     fi
     
-    if command -v $PKG_NAME &> /dev/null; then
-        OCD_VER=$($PKG_NAME --version 2>/dev/null || echo "Installed")
+    if command_exists $PKG_NAME; then
+        echo -e "  ${CYAN}OCD:${NC}               ${GREEN}Installed${NC}"
     else
-        OCD_VER="Not Installed"
+        echo -e "  ${CYAN}OCD:${NC}               ${RED}Not installed${NC}"
     fi
     
-    if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-        # Beautiful table with Gum
-        echo ""
-        gum style --foreground 212 --bold "System Information"
-        echo ""
-        printf "%-20s %s\n" "OS:" "$OS"
-        printf "%-20s %s\n" "Architecture:" "$ARCH"
-        printf "%-20s %s\n" "Package Manager:" "$PM"
-        printf "%-20s %s\n" "OpenChamber:" "$OC_VER"
-        printf "%-20s %s\n" "OCD:" "$OCD_VER"
-        echo ""
-    else
-        echo ""
-        echo -e "${CYAN}System Information${NC}"
-        echo "-------------------"
-        echo -e "OS: ${GREEN}$OS${NC}"
-        echo -e "Architecture: ${GREEN}$ARCH${NC}"
-        echo -e "Package Manager: ${GREEN}$PM${NC}"
-        echo -e "OpenChamber: ${GREEN}$OC_VER${NC}"
-        echo -e "OCD: ${GREEN}$OCD_VER${NC}"
-        echo ""
-    fi
-    
-    read -p "Press Enter to continue..."
+    echo ""
+    echo -e "  ${YELLOW}Press Enter to continue...${NC}"
+    read
 }
 
-# Main
+# Main loop
 main() {
-    check_install_gum
-    
     while true; do
-        show_header
-        CHOICE=$(show_menu)
+        show_menu
         
-        case "$CHOICE" in
-            *Install*)
+        echo -ne "${CYAN}Select option [1-4]:${NC} "
+        read choice
+        
+        case "$choice" in
+            1)
                 install_flow
                 ;;
-            *Uninstall*)
+            2)
                 uninstall_flow
                 ;;
-            *System*)
+            3)
                 system_info
                 ;;
-            *Exit*)
-                if command -v gum &> /dev/null && [ -z "$USE_FALLBACK" ]; then
-                    gum style --foreground 212 "Goodbye! 👋"
-                else
-                    echo -e "${CYAN}Goodbye!${NC}"
-                fi
+            4)
+                clear_screen
+                echo -e "${GREEN}Goodbye! 👋${NC}"
+                echo ""
                 exit 0
+                ;;
+            *)
+                echo -e "${RED}Invalid option${NC}"
+                sleep 1
                 ;;
         esac
     done
 }
 
+# Run
 main
