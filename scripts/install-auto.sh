@@ -34,14 +34,62 @@ error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if command exists
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
+# Robust command check - verifies command exists AND works
+command_works() {
+    local cmd="$1"
+    # Check if command exists in PATH
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        return 1
+    fi
+    # Verify it actually runs (test with --version or similar)
+    case "$cmd" in
+        bun) "$cmd" --version >/dev/null 2>&1 || return 1 ;;
+        pnpm) "$cmd" --version >/dev/null 2>&1 || return 1 ;;
+        npm) "$cmd" --version >/dev/null 2>&1 || return 1 ;;
+        openchamber) "$cmd" --version >/dev/null 2>&1 || return 1 ;;
+        *) "$cmd" --help >/dev/null 2>&1 || return 1 ;;
+    esac
+    return 0
 }
 
 # Get OS
 get_os() {
     uname -s
+}
+
+# Check if Bun is properly installed and in PATH
+check_bun() {
+    # Check common Bun locations
+    local bun_paths=(
+        "$HOME/.bun/bin/bun"
+        "/usr/local/bin/bun"
+        "/opt/homebrew/bin/bun"
+        "$HOME/.local/share/pnpm/bun"
+    )
+    
+    # First check if bun command works
+    if command_works bun; then
+        # Verify it's actually bun, not something else
+        local bun_version=$(bun --version 2>/dev/null)
+        if [ -n "$bun_version" ]; then
+            log "Bun detected: version $bun_version"
+            return 0
+        fi
+    fi
+    
+    # Check specific paths
+    for path in "${bun_paths[@]}"; do
+        if [ -x "$path" ]; then
+            # Add to PATH for this session
+            export PATH="$(dirname "$path"):$PATH"
+            if command_works bun; then
+                log "Bun found at: $path"
+                return 0
+            fi
+        fi
+    done
+    
+    return 1
 }
 
 # Install Bun
@@ -53,33 +101,65 @@ install_bun() {
     success "Bun installed"
 }
 
-# Detect or install package manager
+# Detect or install package manager - PRIORITY: Bun > pnpm > npm
 setup_package_manager() {
-    log "Checking package manager..."
+    log "Detecting package manager (priority: Bun > pnpm > npm)..."
     
-    if command_exists bun; then
-        success "Bun found"
+    # Priority 1: Bun (check thoroughly)
+    if check_bun; then
+        success "Bun selected (priority 1)"
         PM="bun"
-    elif command_exists pnpm; then
-        success "pnpm found"
-        PM="pnpm"
-    elif command_exists npm; then
-        success "npm found"
-        PM="npm"
-    else
-        log "No package manager found, installing Bun..."
-        install_bun
-        PM="bun"
+        export PM
+        return 0
     fi
     
+    # Priority 2: pnpm
+    if command_works pnpm; then
+        local pnpm_version=$(pnpm --version 2>/dev/null)
+        success "pnpm selected (priority 2) - version $pnpm_version"
+        PM="pnpm"
+        export PM
+        return 0
+    fi
+    
+    # Priority 3: npm
+    if command_works npm; then
+        local npm_version=$(npm --version 2>/dev/null)
+        success "npm selected (priority 3) - version $npm_version"
+        PM="npm"
+        export PM
+        return 0
+    fi
+    
+    # None found, install Bun
+    log "No working package manager found, installing Bun..."
+    install_bun
+    PM="bun"
     export PM
+}
+
+# Robust check for OpenChamber
+check_openchamber() {
+    # Check if openchamber command exists and works
+    if ! command_works openchamber; then
+        return 1
+    fi
+    
+    # Get version to confirm it's really working
+    local oc_version=$(openchamber --version 2>/dev/null | head -1)
+    if [ -n "$oc_version" ]; then
+        log "OpenChamber detected: $oc_version"
+        return 0
+    fi
+    
+    return 1
 }
 
 # Install OpenChamber Core only if not present
 install_openchamber() {
     log "Checking OpenChamber Core..."
     
-    if command_exists openchamber; then
+    if check_openchamber; then
         warn "OpenChamber already installed via system package manager"
         log "Skipping OpenChamber installation to avoid conflicts"
         return 0

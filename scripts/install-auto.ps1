@@ -16,9 +16,68 @@ function Write-Success($msg) { Write-Host "[OK] $msg" -ForegroundColor Green }
 function Write-Warn($msg) { Write-Host "[WARN] $msg" -ForegroundColor Yellow }
 function Write-Error($msg) { Write-Host "[ERROR] $msg" -ForegroundColor Red }
 
-# Check if command exists
-function Test-Command($cmd) {
-    return [bool](Get-Command -Name $cmd -ErrorAction SilentlyContinue)
+# Robust command check - verifies command exists AND works
+function Test-CommandWorks($cmd) {
+    # Check if command exists
+    $command = Get-Command -Name $cmd -ErrorAction SilentlyContinue
+    if (-not $command) {
+        return $false
+    }
+    
+    # Verify it actually runs by checking version
+    try {
+        switch ($cmd) {
+            "bun" { 
+                $version = & bun --version 2>$null
+                return ($version -match "\d+\.\d+\.\d+")
+            }
+            "pnpm" { 
+                $version = & pnpm --version 2>$null
+                return ($version -match "\d+\.\d+\.\d+")
+            }
+            "npm" { 
+                $version = & npm --version 2>$null
+                return ($version -match "\d+\.\d+\.\d+")
+            }
+            "openchamber" { 
+                $version = & openchamber --version 2>$null
+                return ($version -match "\d+\.\d+")
+            }
+            default { return $true }
+        }
+    } catch {
+        return $false
+    }
+}
+
+# Check if Bun is properly installed with priority
+def Check-Bun {
+    # Check if bun command works
+    if (Test-CommandWorks "bun") {
+        $version = & bun --version 2>$null
+        Write-Info "Bun detected: version $version"
+        return $true
+    }
+    
+    # Check common Bun locations
+    $bunPaths = @(
+        "$env:USERPROFILE\.bun\bin\bun.exe"
+        "$env:USERPROFILE\.bun\bin\bun.cmd"
+        "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Bun\bun.exe"
+    )
+    
+    foreach ($path in $bunPaths) {
+        if (Test-Path $path) {
+            # Add to PATH for this session
+            $env:PATH += ";$(Split-Path $path)"
+            if (Test-CommandWorks "bun") {
+                Write-Info "Bun found at: $path"
+                return $true
+            }
+        }
+    }
+    
+    return $false
 }
 
 # Install Bun
@@ -27,6 +86,10 @@ function Install-Bun {
     try {
         powershell -Command "irm bun.sh/install.ps1 | iex"
         $env:PATH += ";$env:USERPROFILE\.bun\bin"
+        # Verify installation
+        if (-not (Test-CommandWorks "bun")) {
+            throw "Bun installation verification failed"
+        }
         Write-Success "Bun installed"
     } catch {
         Write-Error "Failed to install Bun: $_"
@@ -34,31 +97,62 @@ function Install-Bun {
     }
 }
 
-# Detect or install package manager
+# Detect or install package manager - PRIORITY: Bun > pnpm > npm
 function Setup-PackageManager {
-    Write-Info "Checking package manager..."
+    Write-Info "Detecting package manager (priority: Bun > pnpm > npm)..."
     
-    if (Test-Command "bun") {
-        Write-Success "Bun found"
-        return "bun"
-    } elseif (Test-Command "pnpm") {
-        Write-Success "pnpm found"
-        return "pnpm"
-    } elseif (Test-Command "npm") {
-        Write-Success "npm found"
-        return "npm"
-    } else {
-        Write-Info "No package manager found, installing Bun..."
-        Install-Bun
+    # Priority 1: Bun (check thoroughly)
+    if (Check-Bun) {
+        Write-Success "Bun selected (priority 1)"
         return "bun"
     }
+    
+    # Priority 2: pnpm
+    if (Test-CommandWorks "pnpm") {
+        $version = & pnpm --version 2>$null
+        Write-Success "pnpm selected (priority 2) - version $version"
+        return "pnpm"
+    }
+    
+    # Priority 3: npm
+    if (Test-CommandWorks "npm") {
+        $version = & npm --version 2>$null
+        Write-Success "npm selected (priority 3) - version $version"
+        return "npm"
+    }
+    
+    # None found, install Bun
+    Write-Info "No working package manager found, installing Bun..."
+    Install-Bun
+    return "bun"
+}
+
+# Robust check for OpenChamber
+def Check-OpenChamber {
+    # Check if openchamber command exists and works
+    if (-not (Test-CommandWorks "openchamber")) {
+        return $false
+    }
+    
+    # Get version to confirm it's really working
+    try {
+        $version = & openchamber --version 2>$null
+        if ($version) {
+            Write-Info "OpenChamber detected: $version"
+            return $true
+        }
+    } catch {
+        return $false
+    }
+    
+    return $false
 }
 
 # Install OpenChamber Core only if not present
 function Install-OpenChamber($pm) {
     Write-Info "Checking OpenChamber Core..."
     
-    if (Test-Command "openchamber") {
+    if (Check-OpenChamber) {
         Write-Warn "OpenChamber already installed via system package manager"
         Write-Info "Skipping OpenChamber installation to avoid conflicts"
         return
