@@ -6,6 +6,19 @@
 
 set -e
 
+# Reopen stdin from terminal (fixes curl | bash closing immediately)
+# This allows interactive prompts to work when script is piped
+if [ -t 0 ]; then
+    : # stdin is already a terminal
+else
+    # Reopen /dev/tty for interactive input
+    exec 0</dev/tty 2>/dev/null || {
+        echo "Error: Cannot access terminal for interactive input."
+        echo "Please run: curl -fsSL .../ocd-manager.sh > /tmp/ocd-manager.sh && bash /tmp/ocd-manager.sh"
+        exit 1
+    }
+fi
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
