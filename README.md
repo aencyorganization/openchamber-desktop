@@ -25,49 +25,80 @@
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (One-Line Install)
 
-### Option 1: Package Manager (Priority Order)
+### 🎯 Universal Installer (Recommended)
+
+**Linux/macOS:**
 ```bash
-# 1. Bun (Fastest - Recommended)
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install-all.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install-all.ps1 | iex
+```
+
+**What it does:**
+1. ✅ Checks your system
+2. ✅ Installs Bun (if not present)
+3. ✅ Installs OpenChamber Desktop
+4. ✅ Creates system shortcuts (Menu/Apps)
+
+---
+
+### 📦 Manual Installation (Package Manager Priority)
+
+**1. Bun (Fastest - Recommended):**
+```bash
 curl -fsSL https://bun.sh/install | bash
 bun install -g openchamber-desktop
+```
 
-# 2. pnpm (Fast)
+**2. pnpm (Fast):**
+```bash
 npm install -g pnpm
 pnpm add -g openchamber-desktop
+```
 
-# 3. npm (Standard)
+**3. npm (Standard):**
+```bash
 npm install -g openchamber-desktop
 ```
 
-### Option 2: AppImage (Linux - Portable)
-```bash
-# One-liner install
-curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install/install.sh | bash
+---
 
-# Or manually:
+### 🗑️ Uninstall
+
+**Universal Uninstaller (Keeps Bun):**
+
+**Linux/macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall-all.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall-all.ps1 | iex
+```
+
+**What it removes:**
+- ✅ OpenChamber Desktop app
+- ✅ System shortcuts (Menu/Apps)
+- ✅ Desktop entries
+
+**What it keeps:**
+- ✅ Bun (for other projects)
+
+---
+
+### 📱 AppImage (Linux - Portable)
+
+```bash
+# Download
 wget https://github.com/aencyorganization/openchamber-desktop/releases/latest/download/OpenChamber-Launcher-x86_64.AppImage
 chmod +x OpenChamber-Launcher-x86_64.AppImage
 ./OpenChamber-Launcher-x86_64.AppImage
-```
-
-### Option 3: System Install (Menu/Apps integration)
-```bash
-# After installing via package manager above, run:
-openchamber-desktop --install-system
-
-# Or manually:
-curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install/install.sh | bash
-```
-
-### Uninstall
-```bash
-# Remove from system
-openchamber-desktop --uninstall-system
-
-# Or manually:
-curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall/uninstall.sh | bash
 ```
 
 ---
