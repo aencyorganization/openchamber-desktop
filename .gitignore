@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+*.AppImage
+
+# Logs
+*.log
+neutralinojs.log
+
+# Temporary files
+.tmp/
+temp/
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Neutralino specific
+resources.neu
+bin/*.exe
+bin/*.dll
+bin/*.so
+bin/*.dylib
+
+# Don't ignore the actual bin binaries we need
+!bin/neutralino-linux_x64
+!bin/neutralino-linux_arm64
+!bin/neutralino-linux_armhf
+!bin/neutralino-mac_x64
+!bin/neutralino-mac_arm64
+!bin/neutralino-mac_universal
+!bin/neutralino-win_x64.exe
+
+# Lock files (keep bun.lock)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

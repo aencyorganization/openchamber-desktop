@@ -1,0 +1,17 @@
+{
+  "name": "openchamber-launcher",
+  "version": "1.0.0",
+  "description": "Launcher em NeutralinoJS para o OpenChamber",
+  "scripts": {
+    "dev": "neu run",
+    "build": "neu build",
+    "build:release": "neu build --release",
+    "build:appimage": "node build-appimage.js",
+    "update": "neu update",
+    "version": "neu version"
+  },
+  "devDependencies": {
+    "@neutralinojs/neu": "^11.7.0",
+    "neutralino-appimage-bundler": "^1.3.4"
+  }
+}

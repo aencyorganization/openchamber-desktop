@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenChamber</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <script>
+        // Clear any stale tokens from session storage
+        sessionStorage.removeItem('NL_TOKEN');
+    </script>
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen active">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- WebView -->
+        <div id="webview-screen" class="screen">
+            <iframe id="app-frame" src="about:blank" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals"></iframe>
+        </div>
+    </div>
+
+    <script src="js/neutralino.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
