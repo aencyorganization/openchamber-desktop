@@ -1,18 +1,49 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
-set "DISPLAY_NAME=OpenChamber Desktop"
-set "INSTALL_DIR=%LOCALAPPDATA%\OpenChamber Desktop"
+:: OpenChamber Desktop Uninstaller for Windows
+:: This script calls the unified Node.js uninstaller
 
-echo Uninstalling %DISPLAY_NAME%...
+echo ==========================================
+echo  OpenChamber Desktop Uninstaller
+echo ==========================================
+echo.
 
-if exist "%INSTALL_DIR%" rd /S /Q "%INSTALL_DIR%"
+:: Check if Node.js is available
+where node >nul 2>nul
+if %errorlevel% neq 0 (
+    echo ERROR: Node.js is not installed or not in PATH
+    echo Please install Node.js from https://nodejs.org/
+    pause
+    exit /b 1
+)
 
-set "SHORTCUT_PATH=%APPDATA%\Microsoft\Windows\Start Menu\Programs\%DISPLAY_NAME%.lnk"
-if exist "%SHORTCUT_PATH%" del "%SHORTCUT_PATH%"
+:: Get the directory where this script is located
+set "SCRIPT_DIR=%~dp0"
+set "UNINSTALL_JS=%SCRIPT_DIR%uninstall.js"
 
-set "DESKTOP_SHORTCUT=%USERPROFILE%\Desktop\%DISPLAY_NAME%.lnk"
-if exist "%DESKTOP_SHORTCUT%" del "%DESKTOP_SHORTCUT%"
+:: Check if the uninstall script exists
+if not exist "%UNINSTALL_JS%" (
+    echo ERROR: Uninstall script not found at %UNINSTALL_JS%
+    pause
+    exit /b 1
+)
 
-echo %DISPLAY_NAME% has been removed successfully!
+:: Run the uninstaller
+echo Starting uninstallation process...
+echo.
+node "%UNINSTALL_JS%"
+
+if %errorlevel% neq 0 (
+    echo.
+    echo ERROR: Uninstallation failed with code %errorlevel%
+    pause
+    exit /b %errorlevel%
+)
+
+echo.
+echo ==========================================
+echo  Uninstallation Complete
+echo ==========================================
 pause
+exit /b 0

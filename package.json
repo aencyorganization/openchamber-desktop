@@ -15,7 +15,13 @@
     "build:release": "neu build --release",
     "build:appimage": "node scripts/build/build-appimage.js",
     "install:system": "node scripts/install/install.js",
-    "uninstall:system": "node scripts/uninstall/uninstall.js"
+    "uninstall:system": "node scripts/uninstall/uninstall.js",
+    "test": "node scripts/tests/installation-tests.js",
+    "test:install": "node scripts/tests/installation-tests.js",
+    "verify": "node scripts/tests/installation-tests.js",
+    "test:bun": "bun run scripts/tests/installation-tests.js",
+    "start:bun": "bun run bin/cli.js",
+    "postinstall:bun": "bun run scripts/postinstall.js"
   },
   "keywords": [
     "openchamber",
@@ -51,9 +57,16 @@
   "files": [
     "bin/",
     "resources/",
+    "scripts/install/",
+    "scripts/uninstall/",
+    "scripts/lib/",
     "neutralino.config.json",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "README.pt.md",
+    "README.es.md",
+    "README.fr.md",
+    "README.de.md"
   ],
   "devDependencies": {
     "@neutralinojs/neu": "^11.7.0",
