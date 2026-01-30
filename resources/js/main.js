@@ -5,7 +5,7 @@
 
 const CONFIG = {
     APP_NAME: 'openchamber',
-    PORTS: [3000, 3001, 8080, 5000, 8000, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010],
+    PORT: 1504,
     TIMEOUT: 30000,
     RETRY: 500
 };
@@ -55,83 +55,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function autoStart() {
-    // Try to find if already running
-    const runningPort = await findRunningPort();
-    if (runningPort) {
-        state.port = runningPort;
-        await connect(runningPort);
-        return;
+    // Check if port 1504 is already in use
+    const isPortInUse = await checkPort(CONFIG.PORT);
+    if (isPortInUse) {
+        // Kill any process using port 1504 before starting
+        await killPort(CONFIG.PORT);
     }
     
-    // Try to start openchamber directly
+    // Try to start openchamber on port 1504
     const port = await tryStartOpenChamber();
     
     if (port) {
         state.port = port;
         await connect(port);
     } else {
-        await exitWithError('Failed to start OpenChamber. Make sure it is installed and in PATH.');
+        await exitWithError('Failed to start OpenChamber on port 1504. Make sure it is installed and in PATH.');
     }
 }
 
 async function tryStartOpenChamber() {
     try {
-        // Spawn the process and capture output to detect port
-        const process = await Neutralino.os.spawnProcess(CONFIG.APP_NAME);
+        // Spawn the process with PORT environment variable set to 1504
+        const process = await Neutralino.os.spawnProcess(CONFIG.APP_NAME, {
+            env: { PORT: CONFIG.PORT.toString() }
+        });
         state.processId = process.id;
         state.pid = process.pid;
         
-        // Listen to process output to detect port
-        let detectedPort = null;
+        // Wait for port 1504 to be available
         const startTime = Date.now();
         
         return new Promise((resolve) => {
             // Set timeout
             const timeoutId = setTimeout(() => {
-                resolve(detectedPort);
+                resolve(null);
             }, CONFIG.TIMEOUT);
             
-            // Listen for process events
-            Neutralino.events.on('spawnedProcess', (evt) => {
-                if (evt.detail.id !== process.id) return;
-                
-                if (evt.detail.action === 'stdOut' || evt.detail.action === 'stdErr') {
-                    const data = evt.detail.data || '';
-                    
-                    // Try to detect port from output (e.g., "Listening on port 3000" or "http://localhost:3000")
-                    const portMatch = data.match(/port\s*(\d{4,5})/i) || 
-                                     data.match(/localhost:(\d{4,5})/) ||
-                                     data.match(/:(\d{4,5})/);
-                    
-                    if (portMatch && !detectedPort) {
-                        const port = parseInt(portMatch[1]);
-                        if (port >= 1000 && port <= 65535) {
-                            detectedPort = port;
-                            clearTimeout(timeoutId);
-                            resolve(port);
-                        }
-                    }
-                }
-                
-                if (evt.detail.action === 'exit') {
-                    clearTimeout(timeoutId);
-                    resolve(detectedPort);
-                }
-            });
-            
-            // Also poll for port as backup
+            // Poll for port 1504
             const pollInterval = setInterval(async () => {
-                if (detectedPort) {
-                    clearInterval(pollInterval);
-                    return;
-                }
-                
-                const port = await findRunningPort();
-                if (port) {
-                    detectedPort = port;
+                const isReady = await checkPort(CONFIG.PORT);
+                if (isReady) {
                     clearInterval(pollInterval);
                     clearTimeout(timeoutId);
-                    resolve(port);
+                    resolve(CONFIG.PORT);
                 }
                 
                 if (Date.now() - startTime > CONFIG.TIMEOUT) {
@@ -146,37 +112,29 @@ async function tryStartOpenChamber() {
     }
 }
 
-async function findRunningPort() {
-    for (const port of CONFIG.PORTS) {
-        if (await checkPort(port)) return port;
-    }
+async function killPort(port) {
+    const os = window.NL_OS || 'Linux';
     
-    // Try to find any openchamber process and its port
     try {
-        const os = window.NL_OS || 'Linux';
-        let cmd;
-        
         if (os === 'Windows') {
-            cmd = `netstat -ano | findstr "LISTENING" | findstr "${CONFIG.APP_NAME}" 2>nul`;
-        } else {
-            cmd = `ss -tlnp 2>/dev/null | grep "${CONFIG.APP_NAME}" || netstat -tlnp 2>/dev/null | grep "${CONFIG.APP_NAME}"`;
-        }
-        
-        const result = await Neutralino.os.execCommand(cmd);
-        const lines = result.stdOut.split('\n');
-        
-        for (const line of lines) {
-            const match = line.match(/:(\d{4,5})/);
-            if (match) {
-                const port = parseInt(match[1]);
-                if (port >= 1000 && port <= 65535) {
-                    return port;
+            // Find PID using the port and kill it
+            const result = await Neutralino.os.execCommand(`netstat -ano | findstr ":${port}" | findstr "LISTENING"`);
+            const lines = result.stdOut.split('\n');
+            for (const line of lines) {
+                const parts = line.trim().split(/\s+/);
+                if (parts.length >= 5) {
+                    const pid = parts[4];
+                    await Neutralino.os.execCommand(`taskkill /F /PID ${pid} 2>nul || exit 0`);
                 }
             }
+        } else {
+            // Linux/Mac: use lsof to find and kill process on port
+            await Neutralino.os.execCommand(`lsof -ti:${port} | xargs kill -9 2>/dev/null || true`);
+            await Neutralino.os.execCommand(`fuser -k ${port}/tcp 2>/dev/null || true`);
         }
-    } catch (e) {}
-    
-    return null;
+    } catch (e) {
+        console.log('No process found on port', port);
+    }
 }
 
 async function checkPort(port) {
@@ -222,8 +180,12 @@ async function cleanupAndExit() {
         } else {
             if (state.pid) await Neutralino.os.execCommand(`kill -9 ${state.pid} 2>/dev/null || true`);
             await Neutralino.os.execCommand(`pkill -9 -f "openchamber" 2>/dev/null || true`);
-            if (state.port) await Neutralino.os.execCommand(`lsof -ti:${state.port} | xargs kill -9 2>/dev/null || true`);
         }
+    } catch (e) {}
+    
+    // Always kill port 1504 on exit
+    try {
+        await killPort(1504);
     } catch (e) {}
     
     try {
