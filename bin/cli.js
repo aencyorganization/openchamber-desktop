@@ -12,6 +12,15 @@ const fs = require('fs');
 const platform = process.platform;
 const arch = process.arch;
 
+if (process.argv.includes('--install-system')) {
+  require('../scripts/install/install.js');
+  process.exit(0);
+}
+if (process.argv.includes('--uninstall-system')) {
+  require('../scripts/uninstall/uninstall.js');
+  process.exit(0);
+}
+
 // Map platform and arch to binary name
 const binaryMap = {
   'linux': {

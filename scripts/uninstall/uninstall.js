@@ -3,9 +3,9 @@ const { execSync } = require('child_process');
 const os = process.platform;
 
 const scripts = {
-  linux: './linux-install.sh',
-  darwin: './macos-install.sh',
-  win32: './windows-install.bat'
+  linux: './linux-uninstall.sh',
+  darwin: './macos-uninstall.sh',
+  win32: './windows-uninstall.bat'
 };
 
 const script = scripts[os];
@@ -17,6 +17,6 @@ if (!script) {
 try {
   execSync(script, { stdio: 'inherit', cwd: __dirname });
 } catch (e) {
-  console.error('Installation failed:', e.message);
+  console.error('Uninstallation failed:', e.message);
   process.exit(1);
 }

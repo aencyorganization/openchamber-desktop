@@ -1,6 +1,6 @@
 {
   "name": "openchamber-desktop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Desktop launcher for OpenChamber - Cross-platform OpenCode GUI",
   "main": "bin/neutralino-linux_x64",
   "bin": {
@@ -8,13 +8,14 @@
     "ocd": "./bin/cli.js"
   },
   "scripts": {
-    "postinstall": "node scripts/postinstall.js",
+    "postinstall": "node scripts/postinstall.js && echo 'Run \"openchamber-desktop --install-system\" to add to system menu'",
     "start": "node bin/cli.js",
     "dev": "neu run",
     "build": "neu build",
     "build:release": "neu build --release",
     "build:appimage": "node scripts/build/build-appimage.js",
-    "install:system": "node scripts/install/install.js"
+    "install:system": "node scripts/install/install.js",
+    "uninstall:system": "node scripts/uninstall/uninstall.js"
   },
   "keywords": [
     "openchamber",

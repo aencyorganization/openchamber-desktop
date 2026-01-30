@@ -21,34 +21,48 @@
 
 ## 🚀 Démarrage Rapide
 
-### Installer via un Gestionnaire de Paquets (Recommandé)
-
+### Option 1 : Gestionnaire de Paquets (Ordre de Priorité)
 ```bash
-# Avec Bun (le plus rapide)
+# 1. Bun (Le plus rapide - Recommandé)
+curl -fsSL https://bun.sh/install | bash
 bun install -g openchamber-desktop
 
-# Avec npm
-npm install -g openchamber-desktop
-
-# Avec pnpm
+# 2. pnpm (Rapide)
+npm install -g pnpm
 pnpm add -g openchamber-desktop
 
-# Exécuter
-openchamber-desktop
-# ou utiliser le raccourci
-ocd
+# 3. npm (Standard)
+npm install -g openchamber-desktop
 ```
 
-### Ou Télécharger Directement
-
-**Linux (AppImage) :**
+### Option 2 : AppImage (Linux - Portable)
 ```bash
+# Installation en une ligne
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install/install.sh | bash
+
+# Ou manuellement :
 wget https://github.com/aencyorganization/openchamber-desktop/releases/latest/download/OpenChamber-Launcher-x86_64.AppImage
 chmod +x OpenChamber-Launcher-x86_64.AppImage
 ./OpenChamber-Launcher-x86_64.AppImage
 ```
 
-**Autres plateformes :** Voir la section [Installation](#-installation) ci-dessous.
+### Option 3 : Installation Système (Intégration Menu/Apps)
+```bash
+# Après l'installation via le gestionnaire de paquets ci-dessus, exécutez :
+openchamber-desktop --install-system
+
+# Ou manuellement :
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install/install.sh | bash
+```
+
+### Désinstallation
+```bash
+# Supprimer du système
+openchamber-desktop --uninstall-system
+
+# Ou manuellement :
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall/uninstall.sh | bash
+```
 
 ---
 
