@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:* ws://localhost:*; script-src 'self' 'unsafe-inline' http://localhost:*; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' http://localhost:* ws://localhost:*;">
     <title>OpenChamber</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="styles/main.css">
@@ -15,7 +16,48 @@
     <div id="app">
         <!-- Loading Screen -->
         <div id="loading-screen" class="screen active">
-            <div class="spinner"></div>
+            <div class="loading-container">
+                <div class="spinner-ring"></div>
+                <div class="loading-info">
+                    <h2 id="loading-status">Procurando OpenChamber...</h2>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="loading-progress"></div>
+                    </div>
+                    <div class="steps-row">
+                        <div class="step-dot active" id="step-1" title="Procurando"></div>
+                        <div class="step-dot" id="step-2" title="Iniciando"></div>
+                        <div class="step-dot" id="step-3" title="Conectando"></div>
+                        <div class="step-dot" id="step-4" title="Pronto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Screen -->
+        <div id="error-screen" class="screen">
+             <div class="error-container">
+                <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <h2 id="error-title">Erro ao Iniciar</h2>
+                <p id="error-message">Não foi possível estabelecer conexão com o sistema.</p>
+                
+                <div class="action-buttons">
+                    <button id="btn-retry" class="btn primary">
+                        <span class="btn-text">Tentar novamente</span>
+                    </button>
+                    <div class="secondary-actions">
+                        <button id="btn-logs" class="btn text">Ver logs</button>
+                        <button id="btn-quit" class="btn text">Sair</button>
+                    </div>
+                </div>
+
+                <div id="error-logs" class="logs-container">
+                    <pre>Waiting for logs...</pre>
+                </div>
+             </div>
         </div>
 
         <!-- WebView -->

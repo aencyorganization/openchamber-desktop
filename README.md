@@ -1,4 +1,4 @@
-# OpenChamber Launcher
+# OpenChamber Desktop
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/btriapitsyn/openchamber/main/docs/references/badges/openchamber-logo-light.svg" width="120" alt="OpenChamber Logo">
@@ -15,462 +15,381 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/openchamber-desktop"><img src="https://img.shields.io/npm/v/openchamber-desktop.svg" alt="npm version"></a>
   <a href="https://github.com/aencyorganization/openchamber-desktop/releases"><img src="https://img.shields.io/github/v/release/aencyorganization/openchamber-desktop" alt="GitHub release"></a>
+  <a href="https://github.com/aencyorganization/openchamber-desktop/actions/workflows/release.yml"><img src="https://github.com/aencyorganization/openchamber-desktop/actions/workflows/release.yml/badge.svg" alt="Release Build"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL%20v3-blue.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows-brightgreen" alt="Platforms">
 </p>
 
 <p align="center">
-  <b>A lightweight desktop launcher for OpenChamber</b><br>
-  Cross-platform • Auto-detection • Minimalist • Secure
+  <b>The official-unofficial lightweight desktop launcher for OpenChamber.</b><br>
+  A high-performance, secure, and cross-platform container for your OpenCode AI environment, now with an interactive TUI manager.
 </p>
 
 ---
 
-## 🚀 Quick Start (One-Line Install)
+## 🚀 Quick Start
 
-### 🎯 Universal Installer (Recommended)
+The fastest way to install, update, or manage your OpenChamber Desktop environment is through our **Interactive TUI Manager**. It automatically detects your system, installs dependencies, and creates optimized shortcuts.
 
-**Linux/macOS:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install-all.sh | bash
-```
+### 📦 TUI Manager (Recommended)
 
-**Windows (PowerShell):**
-```powershell
-irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install-all.ps1 | iex
-```
-
-**What it does:**
-1. ✅ Checks your system
-2. ✅ Installs Bun (if not present)
-3. ✅ Installs OpenChamber Desktop
-4. ✅ Creates system shortcuts (Menu/Apps)
-
----
-
-### 📦 Manual Installation (Package Manager Priority)
-
-**1. Bun (Fastest - Recommended):**
-```bash
-curl -fsSL https://bun.sh/install | bash
-bun install -g openchamber-desktop
-```
-
-**2. pnpm (Fast):**
-```bash
-npm install -g pnpm
-pnpm add -g openchamber-desktop
-```
-
-**3. npm (Standard):**
-```bash
-npm install -g openchamber-desktop
-```
-
----
-
-### 🗑️ Uninstall
-
-**Universal Uninstaller (Keeps Bun):**
-
-**Linux/macOS:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall-all.sh | bash
-```
+Run the command below in your terminal:
 
 **Windows (PowerShell):**
 ```powershell
-irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall-all.ps1 | iex
+irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/ocd-manager.ps1 | iex
 ```
 
-**What it removes:**
-- ✅ OpenChamber Desktop app
-- ✅ System shortcuts (Menu/Apps)
-- ✅ Desktop entries
-
-**What it keeps:**
-- ✅ Bun (for other projects)
-
----
-
-### 📱 AppImage (Linux - Portable)
-
+**macOS / Linux (Bash):**
 ```bash
-# Download
-wget https://github.com/aencyorganization/openchamber-desktop/releases/latest/download/OpenChamber-Launcher-x86_64.AppImage
-chmod +x OpenChamber-Launcher-x86_64.AppImage
-./OpenChamber-Launcher-x86_64.AppImage
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/ocd-manager.sh | bash
 ```
 
----
+### 🛠️ What the TUI Manager Does
 
-## 📋 Table of Contents
+The OCD Manager provides a unified interface to handle everything related to your installation:
 
-- [Features](#-features)
-- [Requirements](#-requirements)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Keyboard Shortcuts](#-keyboard-shortcuts)
-- [Development](#-development)
-- [Building from Source](#-building-from-source)
-- [Project Structure](#-project-structure)
-- [Troubleshooting](#-troubleshooting)
-- [Credits](#-credits)
-- [License](#-license)
+1.  **📦 Install/Update:** Performs a full system audit, installs `bun` if needed, and sets up both the core and launcher.
+2.  **🗑️ Complete Uninstall:** Safely removes all binaries, shortcuts, and shell aliases.
+3.  **ℹ️ System Info:** Displays current versions, paths, and environment status.
+4.  **🎨 Custom Integration:** Let's you choose custom aliases (e.g., `ocd`) and creates native desktop entries.
+
+#### The Installation Flow:
+```text
+[Detection] -> [Runtime Setup] -> [App Install] -> [Shortcuts] -> [Ready!]
+    │               │                │               │
+    ▼               ▼                ▼               ▼
+OS & Arch       Bun/PNPM/NPM      Latest OCD       Desktop/Dock     Done
+```
 
 ---
 
 ## ✨ Features
 
 | Feature | Description |
-|---------|-------------|
-| 🔍 **Auto-Detection** | Automatically finds OpenChamber installation in your system |
-| 🎯 **Smart Port Detection** | Detects which port OpenChamber is running on automatically |
-| 🔒 **Secure Container** | Runs OpenChamber in a sandboxed iframe with controlled permissions |
-| 🧹 **Auto-Cleanup** | Automatically kills all OpenChamber processes when you close the app |
-| 🖥️ **Cross-Platform** | Works on Linux (x64/ARM), macOS (Intel/Apple Silicon), and Windows |
-| 📦 **Multiple Install Methods** | Install via npm, Bun, AppImage, or direct download |
-| ⌨️ **Keyboard Shortcuts** | Fullscreen (F11), Zoom (Ctrl +/-), Reset Zoom (Ctrl+0) |
-| 🎨 **Minimalist UI** | Clean black interface with elegant loading animation |
-| 🚀 **Fast Startup** | Detects existing OpenChamber or starts it automatically |
-| 🛡️ **Error Handling** | Graceful error messages and automatic recovery |
+| :--- | :--- |
+| 🖥️ **TUI Manager** | Interactive terminal-based installer and manager for all platforms. |
+| 🎯 **Smart Package Manager**| Automatically selects the best available runtime (Bun → pnpm → npm). |
+| 🎨 **Modern Shortcuts** | Native desktop entries with proper icons and OS integration. |
+| ⚡ **Single Instance** | Ensures only one window runs at a time, preventing dock/taskbar clutter. |
+| 🔍 **Auto-Detection** | Automatically locates `openchamber` in your system PATH. |
+| 🔒 **Secure Sandbox** | Runs the web interface in a hardened iframe with restricted permissions. |
+| 🧹 **Lifecycle Management** | Automatically terminates all OpenChamber processes when you close the app. |
+| 🛠️ **Developer Friendly** | Built with NeutralinoJS for extreme lightness and performance. |
 
 ---
 
-## 📦 Requirements
+## 📦 Alternative Installation
 
-### System Requirements
+If you prefer manual control, you can use these alternative methods. These are recommended for advanced users only.
 
-- **Operating System:**
-  - Linux: x64, ARM64, ARMv7
-  - macOS: Intel (x64), Apple Silicon (ARM64)
-  - Windows: x64
-- **RAM:** 512 MB minimum (1 GB recommended)
-- **Disk Space:** 50 MB for the launcher
-- **Network:** Internet connection (for OpenChamber functionality)
+<details>
+<summary><b>Option 1: Package Managers (NPM / Bun / PNPM)</b></summary>
 
-### Software Requirements
-
-**You must have OpenChamber installed:**
-
-```bash
-# Quick install via curl
-curl -fsSL https://raw.githubusercontent.com/btriapitsyn/openchamber/main/scripts/install.sh | bash
-
-# Or install via Bun
-bun add -g @openchamber/web
-
-# Or install via npm
-npm install -g @openchamber/web
-
-# Verify installation
-which openchamber
-openchamber --version
-```
-
----
-
-## 🚀 Installation
-
-### Option 1: Package Manager (Recommended)
+Install globally using your favorite JavaScript package manager:
 
 **Bun (Fastest):**
 ```bash
 bun install -g openchamber-desktop
 ```
 
-**npm:**
+**NPM:**
 ```bash
 npm install -g openchamber-desktop
 ```
 
-**pnpm:**
+**PNPM:**
 ```bash
 pnpm add -g openchamber-desktop
 ```
 
-**Yarn:**
-```bash
-yarn global add openchamber-desktop
-```
+*Note: After installation, you can launch the app using the command `ocd` or `openchamber-desktop`.*
+</details>
 
-### Option 2: AppImage (Linux)
+<details>
+<summary><b>Option 2: Linux AppImage (Portable)</b></summary>
+
+Download the standalone portable version:
 
 ```bash
-# Download
-curl -L -o OpenChamber-Launcher-x86_64.AppImage \
+# Download the latest release
+curl -L -o OpenChamber.AppImage \
   https://github.com/aencyorganization/openchamber-desktop/releases/latest/download/OpenChamber-Launcher-x86_64.AppImage
 
-# Make executable
-chmod +x OpenChamber-Launcher-x86_64.AppImage
+# Make it executable
+chmod +x OpenChamber.AppImage
 
-# Run
-./OpenChamber-Launcher-x86_64.AppImage
+# Run it
+./OpenChamber.AppImage
+```
+</details>
 
-# Optional: Install to system
-sudo mv OpenChamber-Launcher-x86_64.AppImage /usr/local/bin/openchamber-desktop
+<details>
+<summary><b>Option 3: Direct Binary Download</b></summary>
+
+Download the optimized binary for your specific architecture:
+
+| Platform | Architecture | Binary Name |
+| :--- | :--- | :--- |
+| **Linux** | x64 | `openchamber-launcher-linux_x64` |
+| | ARM64 | `openchamber-launcher-linux_arm64` |
+| | ARMv7 | `openchamber-launcher-linux_armhf` |
+| **macOS** | Intel | `openchamber-launcher-mac_x64` |
+| | Apple Silicon | `openchamber-launcher-mac_arm64` |
+| **Windows**| x64 | `openchamber-launcher-win_x64.exe` |
+
+[View all downloads on GitHub Releases](https://github.com/aencyorganization/openchamber-desktop/releases)
+</details>
+
+---
+
+## ⚙️ Configuration
+
+
+OpenChamber Desktop is designed to be "zero-config," but it offers flexibility for advanced environments.
+
+<details>
+<summary><b>Configuration File (neutralino.config.json)</b></summary>
+
+The core application settings are stored in `neutralino.config.json`. 
+
+```json
+{
+  "applicationId": "com.openchamber.launcher",
+  "version": "1.1.0",
+  "defaultMode": "window",
+  "port": 1504,
+  "modes": {
+    "window": {
+      "title": "OpenChamber Desktop",
+      "width": 900,
+      "height": 700,
+      "resizable": true
+    }
+  }
+}
 ```
 
-### Option 3: Direct Binary Download
+*Note: Modifying these values in the installed package may require a restart of the application.*
+</details>
 
-Download the appropriate binary for your platform from [GitHub Releases](https://github.com/aencyorganization/openchamber-desktop/releases):
+<details>
+<summary><b>Environment Variables</b></summary>
 
-| Platform | Architecture | File |
-|----------|-------------|------|
-| Linux | x64 | `openchamber-launcher-linux_x64` |
-| Linux | ARM64 | `openchamber-launcher-linux_arm64` |
-| Linux | ARMv7 | `openchamber-launcher-linux_armhf` |
-| macOS | Intel | `openchamber-launcher-mac_x64` |
-| macOS | Apple Silicon | `openchamber-launcher-mac_arm64` |
-| macOS | Universal | `openchamber-launcher-mac_universal` |
-| Windows | x64 | `openchamber-launcher-win_x64.exe` |
+The launcher respects the following environment variables:
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `PORT` | The port passed to the `openchamber` backend server. | `1504` |
+| `NL_PORT` | The internal port for the NeutralinoJS server. | `Random` |
+| `DEBUG` | Enables verbose logging in the terminal if set. | `false` |
+
+</details>
+
+<details>
+<summary><b>Custom Port Management</b></summary>
+
+By default, the app uses port **1504**. 
+
+1.  **Conflict Resolution:** If port 1504 is occupied during startup, the app attempts to kill the occupying process to ensure a clean start.
+2.  **Auto-detection:** The app polls the port for up to 30 seconds until the backend is ready to accept connections.
+3.  **Cleanup:** Closing the window sends a `SIGKILL` to any process remaining on port 1504.
+</details>
 
 ---
 
 ## 🎮 Usage
 
-### Starting the App
+### Basic Commands
+Once installed, you can use the following commands:
+- `ocd` - Launches the application (shorthand).
+- `openchamber-desktop` - Launches the application.
+- `ocd --install-system` - Manually triggers the system integration (shortcuts).
+- `ocd --uninstall-system` - Removes system integration.
 
-```bash
-# If installed via package manager
-openchamber-desktop
-
-# Or use the shorthand
-ocd
-
-# If using AppImage
-./OpenChamber-Launcher-x86_64.AppImage
-
-# If using binary directly
-./openchamber-launcher-linux_x64
-```
-
-### What Happens When You Start
-
-1. **Detection Phase:** The app checks if OpenChamber is already running
-2. **Port Scan:** If running, detects which port it's using (3000, 3001, 8080, etc.)
-3. **Auto-Start:** If not running, automatically starts OpenChamber
-4. **Connection:** Connects to OpenChamber and displays it in the embedded window
-5. **Cleanup:** When you close the window, all OpenChamber processes are terminated
+### What happens at startup?
+1.  **Backend Spawn:** The launcher looks for `openchamber` in your PATH.
+2.  **Server Initialization:** It starts the OpenChamber server on a dedicated local port.
+3.  **Secure Loading:** A splash screen is shown while the launcher waits for the backend to become responsive.
+4.  **Ready:** The web interface is injected into the secure native container.
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## 🎹 Keyboard Shortcuts
 
-| Shortcut | Action | Description |
-|----------|--------|-------------|
-| `F11` | Toggle Fullscreen | Switch between windowed and fullscreen mode |
-| `Ctrl` + `+` | Zoom In | Increase the interface zoom level |
-| `Ctrl` + `-` | Zoom Out | Decrease the interface zoom level |
-| `Ctrl` + `0` | Reset Zoom | Return to default zoom level (100%) |
-| `Cmd` + `+` | Zoom In (Mac) | macOS alternative |
-| `Cmd` + `-` | Zoom Out (Mac) | macOS alternative |
-| `Cmd` + `0` | Reset Zoom (Mac) | macOS alternative |
-
----
-
-## 🛠️ Development
-
-### Prerequisites
-
-- [Bun](https://bun.sh/) or Node.js 18+
-- [NeutralinoJS CLI](https://neutralino.js.org/)
-- Git
-
-### Setup Development Environment
-
-```bash
-# Clone the repository
-git clone https://github.com/aencyorganization/openchamber-desktop.git
-cd openchamber-desktop
-
-# Install dependencies
-bun install
-
-# Download Neutralino binaries
-bun run update
-
-# Start development server (with hot-reload)
-bun run dev
-```
-
-### Available Scripts
-
-```bash
-# Development mode with hot-reload
-bun run dev
-
-# Build for all platforms
-bun run build
-
-# Build release version (optimized)
-bun run build:release
-
-# Build AppImage (Linux only)
-bun run build:appimage
-
-# Start the built application
-bun start
-```
+| Shortcut (PC) | Shortcut (Mac) | Action |
+| :--- | :--- | :--- |
+| `F11` | `F11` | Toggle Fullscreen |
+| `Ctrl` + `+` | `Cmd` + `+` | Zoom In |
+| `Ctrl` + `-` | `Cmd` + `-` | Zoom Out |
+| `Ctrl` + `0` | `Cmd` + `0` | Reset Zoom (100%) |
+| `Ctrl` + `Q` | `Cmd` + `Q` | Quit Application |
+| `F12` | `Cmd` + `Opt` + `I` | Open DevTools (if enabled) |
 
 ---
 
-## 🔨 Building from Source
+## 🛠️ Advanced Usage
 
-### Build for All Platforms
+<details>
+<summary><b>Running in Portable Mode</b></summary>
 
+If you want to run the app without installing it to the system:
+1. Download the binary for your OS.
+2. Ensure `openchamber` is installed and available in your environment.
+3. Run the binary directly from the terminal.
+</details>
+
+<details>
+<summary><b>Manual Backend Association</b></summary>
+
+If the app cannot find your OpenChamber installation, ensure that the path to the `openchamber` executable is added to your system's `PATH` variable. 
+
+For Bun users:
 ```bash
-# Install dependencies
-bun install
-
-# Download binaries
-bun run update
-
-# Build
-bun run build:release
+export PATH="$HOME/.bun/bin:$PATH"
 ```
-
-The built files will be in the `dist/` directory.
-
-### Build AppImage (Linux)
-
-```bash
-bun run build:appimage
-```
-
-Output: `dist/OpenChamber-Launcher-x86_64.AppImage`
-
----
-
-## 📁 Project Structure
-
-```
-openchamber-desktop/
-├── 📁 assets/                  # Images, icons, logos
-│   └── openchamber-logo-dark.png
-├── 📁 bin/                     # Compiled binaries
-│   ├── cli.js                 # CLI entry point
-│   ├── neutralino-linux_x64   # Linux x64 binary
-│   ├── neutralino-linux_arm64 # Linux ARM64 binary
-│   ├── neutralino-linux_armhf # Linux ARMv7 binary
-│   ├── neutralino-mac_x64     # macOS Intel binary
-│   ├── neutralino-mac_arm64   # macOS Apple Silicon binary
-│   ├── neutralino-mac_universal # macOS Universal binary
-│   └── neutralino-win_x64.exe # Windows binary
-├── 📁 config/                  # Configuration files
-│   └── npm-package.json       # npm-specific config
-├── 📁 docs/                    # Documentation
-│   ├── CHANGELOG.md           # Version history
-│   ├── CODE_OF_CONDUCT.md     # Community guidelines
-│   ├── CONTRIBUTING.md        # How to contribute
-│   └── PUBLISHING.md          # Release guide
-├── 📁 resources/               # Application resources
-│   ├── index.html            # Main UI file
-│   ├── js/
-│   │   ├── main.js           # Main application logic
-│   │   └── neutralino.js     # Neutralino client library
-│   └── styles/
-│       └── main.css          # Application styles
-├── 📁 scripts/                 # Build and utility scripts
-│   ├── build/
-│   │   ├── build-appimage.js # AppImage builder
-│   │   └── publish-npm.sh    # npm publish helper
-│   └── postinstall.js        # Post-install script
-├── 📁 .github/                 # GitHub templates and workflows
-│   ├── workflows/
-│   │   └── release.yml       # Automated release workflow
-│   └── ISSUE_TEMPLATE/
-├── 📄 package.json            # Main package configuration
-├── 📄 neutralino.config.json  # Neutralino app configuration
-├── 📄 README.md               # This file (English)
-├── 📄 README.pt.md            # Portuguese version
-├── 📄 README.es.md            # Spanish version
-├── 📄 README.fr.md            # French version
-├── 📄 README.de.md            # German version
-└── 📄 LICENSE                 # GPL-3.0 License
-```
+</details>
 
 ---
 
 ## 🔧 Troubleshooting
 
-### App says "OpenChamber not found"
+<details>
+<summary><b>📦 TUI Manager Issues</b></summary>
 
-**Problem:** OpenChamber is not installed or not in PATH.
-
+**Problem:** Script fails with "Permission Denied" or "Command not found".
 **Solution:**
+1. Ensure you have `curl` (Linux/macOS) or `powershell` (Windows) updated.
+2. Try running with `sudo` for Linux/macOS if global installation fails.
+3. For Windows, ensure you are running PowerShell as **Administrator**.
+4. **Debug Mode:** Run the script with `DEBUG=true` to see verbose logs:
+   ```bash
+   DEBUG=true curl -fsSL ... | bash
+   ```
+</details>
+
+<details>
+<summary><b>🔍 Detection Issues</b></summary>
+
+**Problem:** App says "OpenChamber not found".
+**Solution:**
+1. Verify OpenChamber is installed: `openchamber --version`.
+2. If not installed, run: `bun add -g @openchamber/web`.
+3. Ensure your PATH is correctly set up.
+</details>
+
+<details>
+<summary><b>🔌 Port Conflicts</b></summary>
+
+**Problem:** Port detection timeout or "Port already in use".
+**Solution:**
+1. The app automatically tries to clear port 1504.
+2. If it fails, manually kill the process: 
+   - Linux/Mac: `lsof -ti:1504 | xargs kill -9`
+   - Windows (CMD): `for /f "tokens=5" %a in ('netstat -aon ^| findstr :1504') do taskkill /f /pid %a`
+</details>
+
+<details>
+<summary><b>🔑 Authentication Errors (NE_CL_IVCTOKN)</b></summary>
+
+**Problem:** Standard Neutralino token error.
+**Solution:**
+1. Restart the application.
+2. Clear the `.tmp` directory in the app folder if it exists.
+3. This is usually caused by multiple instances trying to use the same token.
+</details>
+
+<details>
+<summary><b>🐧 Linux AppImage Errors</b></summary>
+
+**Problem:** AppImage won't start on Ubuntu/Debian.
+**Solution:**
+Install the FUSE library:
 ```bash
-# Install OpenChamber
-curl -fsSL https://raw.githubusercontent.com/btriapitsyn/openchamber/main/scripts/install.sh | bash
-
-# Verify it's in PATH
-which openchamber
-
-# If not in PATH, add it (example for Bun)
-export PATH="$HOME/.bun/bin:$PATH"
+sudo apt install libfuse2
 ```
-
-### Port detection timeout
-
-**Problem:** App can't detect which port OpenChamber is using.
-
-**Solution:**
-- Make sure OpenChamber is actually running: `openchamber --version`
-- Check if ports 3000-3010 are available
-- Try manually specifying the port in OpenChamber config
-
-### "NE_CL_IVCTOKN" error
-
-**Problem:** Authentication token error with Neutralino.
-
-**Solution:**
-- Restart the application
-- Clear browser session storage
-- If persists, delete `.tmp/` folder and restart
-
-### AppImage won't run
-
-**Problem:** AppImage doesn't execute.
-
-**Solution:**
-```bash
-# Make executable
-chmod +x OpenChamber-Launcher-x86_64.AppImage
-
-# Install FUSE (if missing)
-sudo apt install libfuse2  # Ubuntu/Debian
-sudo pacman -S fuse2       # Arch
-
-# Or use --appimage-extract flag
-./OpenChamber-Launcher-x86_64.AppImage --appimage-extract
-./squashfs-root/AppRun
-```
+</details>
 
 ---
 
-## 🙏 Credits
+## 🏗️ Architecture
 
-### Original Projects
+OpenChamber Desktop follows a "Manager-Worker" architecture:
 
-- **[OpenChamber](https://github.com/btriapitsyn/openchamber)** - Desktop and web interface for OpenCode AI agent
-  - Created by [Bogdan Triapitsyn](https://github.com/btriapitsyn)
-  - Repository: https://github.com/btriapitsyn/openchamber
-  - License: MIT
+```text
+┌───────────────────────────┐      ┌───────────────────────────┐
+│     NeutralinoJS Host     │      │    OpenChamber Backend    │
+│  (Native OS Operations)   │◄────►│   (AI Agent & Terminal)   │
+└─────────────┬─────────────┘      └─────────────┬─────────────┘
+              │                                  │
+              ▼                                  │
+┌───────────────────────────┐                    │
+│      Embedded Iframe      │◄───────────────────┘
+│   (Secure Web Interface)  │     HTTP / Localhost:1504
+└───────────────────────────┘
+```
 
-- **[OpenCode](https://opencode.ai)** - AI coding assistant for the terminal
-  - Developed by [Anomaly Innovations](https://anomalyinnovations.com)
-  - Website: https://opencode.ai
+1.  **NeutralinoJS:** Handles window management, system PATH detection, and process spawning.
+2.  **Child Process:** Spawns `openchamber` as a background worker.
+3.  **Communication:** The frontend connects via a local-only socket/HTTP connection to port 1504.
+4.  **Sandbox:** The UI is strictly isolated from native APIs except through defined Neutralino bridges.
 
-### Technologies Used
+---
 
-- [NeutralinoJS](https://neutralino.js.org/) - Cross-platform desktop application framework
-- [neutralino-appimage-bundler](https://github.com/krypt0nn/neutralino-appimage-bundler) - AppImage packaging tool
-- [Bun](https://bun.sh/) - Fast JavaScript runtime and package manager
+## ❓ FAQ
 
-### Contributors
+<details>
+<summary><b>Why use the Desktop app instead of just the browser?</b></summary>
+The Desktop app provides a dedicated environment with OS integration (shortcuts, dock icon), automatic backend lifecycle management (starts/stops with the app), and hardware-accelerated performance without browser tab clutter.
+</details>
 
-- OpenCode Team and Contributors
-- Anomaly Innovations Team
-- All contributors to the OpenChamber project
+<details>
+<summary><b>Is it secure?</b></summary>
+Yes. All communication is restricted to `localhost`. The web interface runs inside a sandboxed iframe with `allow-scripts` but restricted top-level navigation, protecting your local system.
+</details>
+
+<details>
+<summary><b>Can I change the default port?</b></summary>
+Currently, the port is set to 1504 to avoid conflicts with common development ports like 3000 or 8080. You can modify this in the source code under `resources/js/main.js`.
+</details>
+
+---
+
+## 🚧 Development
+
+<details>
+<summary><b>Setup Environment</b></summary>
+
+1.  **Prerequisites:**
+    - [Bun](https://bun.sh/) (Runtime)
+    - [Neutralino CLI](https://neutralino.js.org/docs/cli/neu-cli) (`npm install -g @neutralinojs/neu`)
+
+2.  **Clone & Install:**
+    ```bash
+    git clone https://github.com/aencyorganization/openchamber-desktop.git
+    cd openchamber-desktop
+    bun install
+    ```
+
+3.  **Run Development Mode:**
+    ```bash
+    bun run dev
+    ```
+</details>
+
+<details>
+<summary><b>Build Scripts</b></summary>
+
+- `bun run build` - Build for the current platform.
+- `bun run build:release` - Build optimized binaries for all supported platforms.
+- `bun run build:appimage` - Generate Linux AppImage (requires `appimagetool`).
+</details>
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on how to submit pull requests, report bugs, and suggest features.
 
 ---
 
@@ -478,18 +397,12 @@ sudo pacman -S fuse2       # Arch
 
 This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
 
-See [LICENSE](LICENSE) file for full details.
+See the [LICENSE](LICENSE) file for the full text. 
 
-**Key points:**
-- You can use, modify, and distribute this software
-- If you distribute modified versions, you must share the source code
-- Any derivative works must also be GPL-3.0 licensed
-
----
-
-## ⚠️ Disclaimer
-
-This is an **independent project** and is not officially affiliated with OpenCode or Anomaly Innovations. OpenChamber and OpenCode are trademarks of their respective owners.
+**Summary:**
+- ✅ Free to use, modify, and distribute.
+- ⚠️ Modified versions must also be open-source under GPL-3.0.
+- ⚠️ Source code must be made available when distributing.
 
 ---
 
