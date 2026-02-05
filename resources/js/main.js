@@ -24,6 +24,47 @@ const APP_NAME = 'openchamber';
 const START_PORT_RANGE = 1504;
 const END_PORT_RANGE = 1550;
 
+// Helper to find executable path
+async function findExecutable() {
+    const possiblePaths = [
+        'openchamber',
+        'openchamber-desktop',
+        '/usr/bin/openchamber',
+        '/usr/local/bin/openchamber',
+        '/usr/bin/openchamber-desktop',
+        '/usr/local/bin/openchamber-desktop',
+        '~/.bun/bin/openchamber',
+        '~/.bun/bin/openchamber-desktop',
+        '~/.local/bin/openchamber',
+        '~/.local/bin/openchamber-desktop'
+    ];
+    
+    // Expand home directory
+    const home = await Neutralino.os.getEnv('HOME') || await Neutralino.os.getEnv('USERPROFILE') || '';
+    const expandedPaths = possiblePaths.map(p => p.replace('~', home));
+    
+    // Try to find which one exists
+    for (const cmd of expandedPaths) {
+        try {
+            const checkCmd = NL_OS === 'Windows' 
+                ? `where "${cmd}" 2>nul || exit 0`
+                : `command -v "${cmd}" 2>/dev/null || test -x "${cmd}" && echo "${cmd}"`;
+            
+            const result = await Neutralino.os.execCommand(checkCmd);
+            if (result.stdOut.trim()) {
+                console.log(`Found executable: ${cmd}`);
+                return cmd;
+            }
+        } catch (e) {
+            // Continue to next
+        }
+    }
+    
+    // Fallback: try with shell
+    console.log('Executable not found in standard paths, trying with shell...');
+    return '/bin/bash';
+}
+
 // 1. Configuration System
 function loadConfig() {
     const saved = localStorage.getItem(CONFIG_KEY);
@@ -236,9 +277,46 @@ async function autoStart() {
 
             // Step 2: Spawn process
             updateLoadingStep(2, 'Iniciando servidor...');
-            const process = await Neutralino.os.spawnProcess(APP_NAME, {
-                env: { PORT: port.toString() }
-            });
+            
+            // Find the executable
+            let execPath;
+            try {
+                execPath = await findExecutable();
+                addLog(`Executable path resolved to: ${execPath}`);
+            } catch (execErr) {
+                addLog(`Warning: Could not find executable: ${execErr.message}`);
+                execPath = APP_NAME; // Fallback to simple name
+            }
+            
+            // Get home directory for PATH construction
+            const homeDir = await Neutralino.os.getEnv('HOME') || await Neutralino.os.getEnv('USERPROFILE') || '';
+            
+            let process;
+            try {
+                if (execPath === '/bin/bash' || execPath === APP_NAME) {
+                    // Fallback: use shell to find and run the command
+                    addLog('Using shell fallback to find openchamber...');
+                    process = await Neutralino.os.spawnProcess('/bin/bash', {
+                        args: ['-c', `export PATH="$HOME/.bun/bin:$HOME/.local/bin:/usr/local/bin:$PATH" && ${APP_NAME}`],
+                        env: { PORT: port.toString(), PATH: `${homeDir}/.bun/bin:${homeDir}/.local/bin:/usr/local/bin:/usr/bin:/bin` }
+                    });
+                } else if (execPath === 'openchamber' || execPath === 'openchamber-desktop') {
+                    // Use command name directly with enhanced PATH
+                    process = await Neutralino.os.spawnProcess('/bin/bash', {
+                        args: ['-c', `export PATH="$HOME/.bun/bin:$HOME/.local/bin:/usr/local/bin:$PATH" && ${execPath}`],
+                        env: { PORT: port.toString(), PATH: `${homeDir}/.bun/bin:${homeDir}/.local/bin:/usr/local/bin:/usr/bin:/bin` }
+                    });
+                } else {
+                    // Use full path
+                    process = await Neutralino.os.spawnProcess(execPath, {
+                        env: { PORT: port.toString() }
+                    });
+                }
+            } catch (spawnErr) {
+                addLog(`ERROR: Failed to spawn process: ${spawnErr.message}`);
+                retries++;
+                continue;
+            }
             
             state.processId = process.id;
             state.pid = process.pid;

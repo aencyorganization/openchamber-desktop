@@ -123,9 +123,25 @@ create_linux_integration() {
         APP_EXE="$(which openchamber-desktop)"
     fi
     
+    # Remover entradas antigas/duplicadas primeiro
+    if [ -f "$HOME/.local/share/applications/ocd.desktop" ]; then
+        print_status "Removendo entrada antiga ocd.desktop..."
+        rm -f "$HOME/.local/share/applications/ocd.desktop"
+    fi
+    
     # Create .desktop file
     DESKTOP_FILE="$HOME/.local/share/applications/openchamber-desktop.desktop"
     mkdir -p "$HOME/.local/share/applications"
+    
+    # Detectar arquitetura para WM_CLASS
+    local arch=$(uname -m)
+    local wm_class
+    case "$arch" in
+        x86_64) wm_class="neutralino-linux_x64" ;;
+        aarch64|arm64) wm_class="neutralino-linux_arm64" ;;
+        armv7l|armhf) wm_class="neutralino-linux_armhf" ;;
+        *) wm_class="neutralino-linux_x64" ;;
+    esac
     
     cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
@@ -137,6 +153,9 @@ Categories=Development;IDE;System;
 Terminal=false
 Comment=OpenChamber Desktop Launcher (Unofficial)
 Keywords=openchamber;opencode;ai;coding;
+StartupNotify=true
+StartupWMClass=$wm_class
+TryExec=$APP_EXE
 EOF
     
     chmod +x "$DESKTOP_FILE"

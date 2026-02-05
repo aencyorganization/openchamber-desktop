@@ -110,18 +110,47 @@ check_prerequisites() {
 integrate_desktop() {
     info "Integrating with desktop environment..."
     
-    # Create .desktop file
+    # Detect the correct binary name for WM_CLASS
+    local detected_arch
+    detected_arch=$(uname -m)
+    local wm_class
+    case "$detected_arch" in
+        x86_64) wm_class="neutralino-linux_x64" ;;
+        aarch64|arm64) wm_class="neutralino-linux_arm64" ;;
+        armv7l|armhf) wm_class="neutralino-linux_armhf" ;;
+        *) wm_class="neutralino-linux_x64" ;;
+    esac
+    
+    # Copy icon to a standard location for better compatibility
+    local icon_dir="$HOME/.local/share/icons/hicolor/256x256/apps"
+    if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+        icon_dir="/usr/share/icons/hicolor/256x256/apps"
+    fi
+    
+    mkdir -p "$icon_dir"
+    if [ -f "$INSTALL_DIR/assets/openchamber-logo-dark.png" ]; then
+        cp "$INSTALL_DIR/assets/openchamber-logo-dark.png" "$icon_dir/openchamber-desktop.png"
+        info "Icon installed to $icon_dir/openchamber-desktop.png"
+    fi
+    
+    # Create .desktop file with correct WM_CLASS matching
+    # The WM_CLASS is set by the Neutralino binary, not our wrapper script
     cat <<EOF > "$DESKTOP_FILE"
 [Desktop Entry]
 Name=$DISPLAY_NAME
 Comment=Desktop launcher for OpenChamber
 Exec=$BIN_PATH
-Icon=$INSTALL_DIR/assets/openchamber-logo-dark.png
+Icon=openchamber-desktop
 Type=Application
 Categories=Utility;Development;
 Terminal=false
-Keywords=OpenChamber;Desktop;
-StartupWMClass=openchamber-launcher
+Keywords=OpenChamber;Desktop;Launcher;
+StartupNotify=true
+StartupWMClass=$wm_class
+X-Desktop-File-Install-Version=0.26
+X-KDE-SubstituteUID=false
+X-KDE-Username=
+MimeType=x-scheme-handler/openchamber;
 EOF
     chmod 644 "$DESKTOP_FILE"
 

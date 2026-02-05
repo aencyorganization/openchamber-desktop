@@ -311,6 +311,13 @@ create_shortcuts() {
     local icon_dir="$HOME/.config/openchamber"
     local icon_path="$icon_dir/icon.png"
     
+    # Remover entradas antigas/duplicadas primeiro
+    local desktop_dir="$HOME/.local/share/applications"
+    if [ -f "$desktop_dir/ocd.desktop" ]; then
+        log "Removendo entrada antiga ocd.desktop..."
+        rm -f "$desktop_dir/ocd.desktop"
+    fi
+    
     mkdir -p "$icon_dir"
     
     # Download icon
@@ -319,8 +326,18 @@ create_shortcuts() {
     fi
     
     if [ "$os" = "Linux" ]; then
-        local desktop_path="$HOME/.local/share/applications/ocd.desktop"
+        local desktop_path="$HOME/.local/share/applications/openchamber-desktop.desktop"
         mkdir -p "$(dirname "$desktop_path")"
+        
+        # Detectar arquitetura para WM_CLASS
+        local arch=$(uname -m)
+        local wm_class
+        case "$arch" in
+            x86_64) wm_class="neutralino-linux_x64" ;;
+            aarch64|arm64) wm_class="neutralino-linux_arm64" ;;
+            armv7l|armhf) wm_class="neutralino-linux_armhf" ;;
+            *) wm_class="neutralino-linux_x64" ;;
+        esac
         
         cat > "$desktop_path" <<EOF
 [Desktop Entry]
@@ -331,7 +348,9 @@ Icon=$icon_path
 Terminal=false
 Type=Application
 Categories=Development;Utility;
-StartupNotify=false
+StartupNotify=true
+StartupWMClass=$wm_class
+TryExec=$PKG_NAME
 EOF
         chmod +x "$desktop_path"
         success "Linux desktop entry created"
