@@ -29,20 +29,48 @@
 
 ## 🚀 Quick Start
 
-The fastest way to install, update, or manage your OpenChamber Desktop environment is through our **Interactive TUI Manager**. It automatically detects your system, installs dependencies, and creates optimized shortcuts.
+The fastest way to install OpenChamber Desktop is through our **One-Line Installers**. They automatically detect your system, install dependencies, and create optimized shortcuts.
 
-### 📦 TUI Manager (Recommended)
+### 📦 One-Line Installer (Recommended)
 
 Run the command below in your terminal:
 
-**Windows (PowerShell):**
+**Windows (PowerShell - Admin):**
 ```powershell
-irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/ocd-manager.ps1 | iex
+irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install.ps1 | iex
 ```
 
-**macOS / Linux (Bash):**
+**Linux / macOS (Bash):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/ocd-manager.sh | bash
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install.sh | bash
+```
+
+### 🔄 Update
+
+To update to the latest version:
+
+**Windows:**
+```powershell
+irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/update.ps1 | iex
+```
+
+**Linux / macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/update.sh | bash
+```
+
+### 🗑️ Uninstall
+
+To completely remove OpenChamber Desktop:
+
+**Windows:**
+```powershell
+irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall.ps1 | iex
+```
+
+**Linux / macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall.sh | bash
 ```
 
 ### 🛠️ What the TUI Manager Does
