@@ -54,3 +54,6 @@ scripts/build/publish-npm.sh
 *.AppImage
 OpenChamber*.AppImage
 neutralinojs.log
+
+# Development scripts (personal utilities not for distribution)
+scripts/dev/

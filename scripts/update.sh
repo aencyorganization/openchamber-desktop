@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# OpenChamber Desktop - Atualização de Configuração
-# Limpa configs antigas e migra para nova versão
+# OpenChamber Desktop - Configuration Update
+# Cleans old configs and migrates to new version
 #
 
 set -e
@@ -9,7 +9,7 @@ set -e
 APP_NAME="OpenChamber Desktop"
 PKG_NAME="openchamber-desktop"
 
-# Cores
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -47,41 +47,39 @@ header() {
 }
 
 # ============================================
-# LIMPAR CONFIGS ANTIGAS
+# CLEANUP OLD CONFIGS
 # ============================================
 cleanup_old_configs() {
-    header "LIMPANDO CONFIGURAÇÕES ANTIGAS"
+    header "CLEANING OLD CONFIGURATIONS"
     
-    # Parar processos
-    log "Parando processos..."
+    # Stop processes
+    log "Stopping processes..."
     pkill -f "openchamber" 2>/dev/null || true
     pkill -f "neutralino" 2>/dev/null || true
     sleep 1
     
-    # Limpar localStorage do Neutralino (arquivos de config)
-    log "Limpando configurações salvas..."
+    # Clean saved configs
+    log "Cleaning saved configurations..."
     
-    # Configs do Neutralino/LocalStorage
     rm -rf "$HOME/.config/openchamber" 2>/dev/null || true
     rm -rf "$HOME/.local/share/openchamber-desktop" 2>/dev/null || true
     
-    # Limpar localStorage específico (se houver)
     if [ -d "$HOME/.config/Neutralinojs" ]; then
         rm -rf "$HOME/.config/Neutralinojs"/*openchamber* 2>/dev/null || true
     fi
     
-    success "Configurações antigas limpas"
+    success "Old configurations cleaned"
 }
 
 # ============================================
-# REINSTALAR PACOTE
+# REINSTALL PACKAGE
 # ============================================
 reinstall_package() {
-    header "REINSTALANDO PACOTE"
+    header "REINSTALLING PACKAGE"
     
-    log "Verificando instalação atual..."
+    log "Checking current installation..."
     
-    # Detectar package manager
+    # Detect package manager
     if command -v bun >/dev/null 2>&1; then
         PM="bun"
     elif command -v pnpm >/dev/null 2>&1; then
@@ -91,14 +89,14 @@ reinstall_package() {
     elif command -v npm >/dev/null 2>&1; then
         PM="npm"
     else
-        error "Nenhum package manager encontrado!"
+        error "No package manager found!"
         exit 1
     fi
     
     success "Package manager: $PM"
     
-    # Reinstalar
-    log "Reinstalando $PKG_NAME..."
+    # Reinstall
+    log "Reinstalling $PKG_NAME..."
     case "$PM" in
         bun)
             bun remove -g "$PKG_NAME" 2>/dev/null || true
@@ -118,31 +116,30 @@ reinstall_package() {
             ;;
     esac
     
-    success "Pacote reinstalado"
+    success "Package reinstalled"
 }
 
 # ============================================
-# RECRIAR DESKTOP ENTRY
+# RECREATE DESKTOP ENTRY
 # ============================================
 recreate_desktop_entry() {
-    header "RECREANDO DESKTOP ENTRY"
+    header "RECREATING DESKTOP ENTRY"
     
     local desktop_dir="$HOME/.local/share/applications"
     local desktop_file="$desktop_dir/openchamber-desktop.desktop"
     local icon_dir="$HOME/.local/share/icons/hicolor/256x256/apps"
     
-    # Remover entry antiga
     rm -f "$desktop_file" 2>/dev/null || true
     rm -f "$desktop_dir/ocd.desktop" 2>/dev/null || true
     
     mkdir -p "$desktop_dir"
     mkdir -p "$icon_dir"
     
-    # Baixar ícone
-    log "Baixando ícone..."
+    # Download icon
+    log "Downloading icon..."
     curl -fsSL "https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/assets/openchamber-logo-dark.png" -o "$icon_dir/openchamber-desktop.png" 2>/dev/null || true
     
-    # Detectar arquitetura
+    # Detect architecture
     local arch=$(uname -m)
     local wm_class
     case "$arch" in
@@ -152,8 +149,8 @@ recreate_desktop_entry() {
         *) wm_class="neutralino-linux_x64" ;;
     esac
     
-    # Criar entry
-    log "Criando nova desktop entry..."
+    # Create entry
+    log "Creating new desktop entry..."
     cat > "$desktop_file" <<EOF
 [Desktop Entry]
 Version=1.0
@@ -175,83 +172,80 @@ EOF
     
     chmod +x "$desktop_file"
     
-    # Atualizar database
     if command -v update-desktop-database >/dev/null 2>&1; then
         update-desktop-database "$desktop_dir" 2>/dev/null || true
     fi
     
-    success "Desktop entry recriada"
+    success "Desktop entry recreated"
 }
 
 # ============================================
-# LIMPAR CACHE
+# CLEAR CACHE
 # ============================================
 clear_cache() {
-    header "LIMPANDO CACHE"
+    header "CLEARING CACHE"
     
-    # Cache KDE
     rm -rf "$HOME/.cache/menus"/* 2>/dev/null || true
     rm -f "$HOME/.cache/icon-cache.kcache" 2>/dev/null || true
     rm -rf "$HOME/.cache/ksycoca5"* 2>/dev/null || true
     
-    # Rebuild KDE
     if command -v kbuildsycoca5 >/dev/null 2>&1; then
-        log "Reconstruindo cache KDE..."
+        log "Rebuilding KDE cache..."
         kbuildsycoca5 --noincremental 2>/dev/null || true
     fi
     
-    success "Cache limpo"
+    success "Cache cleared"
 }
 
 # ============================================
-# FINALIZAR
+# FINISH
 # ============================================
 finish() {
-    header "ATUALIZAÇÃO CONCLUÍDA!"
+    header "UPDATE COMPLETED!"
     
-    echo -e "${GREEN}$APP_NAME foi atualizado com sucesso!${NC}"
+    echo -e "${GREEN}$APP_NAME has been successfully updated!${NC}"
     echo ""
-    echo -e "${BOLD}${CYAN}O QUE FOI FEITO:${NC}"
-    echo "  ✓ Configurações antigas removidas"
-    echo "  ✓ Pacote reinstalado com correções"
-    echo "  ✓ Desktop entry recriada"
-    echo "  ✓ Cache limpo"
+    echo -e "${BOLD}${CYAN}WHAT WAS DONE:${NC}"
+    echo "  ✓ Old configurations removed"
+    echo "  ✓ Package reinstalled with fixes"
+    echo "  ✓ Desktop entry recreated"
+    echo "  ✓ Cache cleared"
     echo ""
-    echo -e "${BOLD}${CYAN}PRÓXIMOS PASSOS:${NC}"
+    echo -e "${BOLD}${CYAN}NEXT STEPS:${NC}"
     echo ""
-    echo -e "${YELLOW}1. REMOVA ÍCONES ANTIGOS DA DOCK:${NC}"
-    echo "   Clique direito no ícone → 'Remover'"
+    echo -e "${YELLOW}1. REMOVE OLD ICONS FROM DOCK:${NC}"
+    echo "   Right-click on icon → 'Remove'"
     echo ""
-    echo -e "${YELLOW}2. ABRA PELO MENU:${NC}"
-    echo "   Alt+F2 → digite 'OpenChamber'"
+    echo -e "${YELLOW}2. OPEN FROM MENU:${NC}"
+    echo "   Alt+F2 → type 'OpenChamber'"
     echo ""
-    echo -e "${YELLOW}3. FIXE O NOVO ÍCONE:${NC}"
-    echo "   Clique direito na barra → 'Fixar'"
+    echo -e "${YELLOW}3. PIN THE NEW ICON:${NC}"
+    echo "   Right-click on taskbar → 'Pin'"
     echo ""
-    echo -e "${CYAN}O problema da tela branca foi corrigido!${NC}"
+    echo -e "${CYAN}The white screen issue has been fixed!${NC}"
     echo ""
 }
 
 # ============================================
-# EXECUÇÃO
+# MAIN
 # ============================================
 main() {
     echo ""
     echo -e "${BOLD}${CYAN}╔════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}${CYAN}║${NC}  ${GREEN}OpenChamber Desktop - Atualização de Config${NC}          ${BOLD}${CYAN}║${NC}"
+    echo -e "${BOLD}${CYAN}║${NC}  ${GREEN}OpenChamber Desktop - Configuration Update${NC}          ${BOLD}${CYAN}║${NC}"
     echo -e "${BOLD}${CYAN}╚════════════════════════════════════════════════════════╝${NC}"
     echo ""
     
     if [[ "$OSTYPE" != "linux-gnu"* ]] && [[ "$OSTYPE" != "linux"* ]]; then
-        error "Este script é apenas para Linux!"
+        error "This script is for Linux only!"
         exit 1
     fi
     
-    read -p "Deseja atualizar? (s/n): " -n 1 -r
+    read -p "Do you want to update? (y/n): " -n 1 -r
     echo
     
-    if [[ ! $REPLY =~ ^[Ss]$ ]]; then
-        echo "Cancelado."
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Canceled."
         exit 0
     fi
     
