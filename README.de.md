@@ -21,47 +21,48 @@
 
 ## 🚀 Schnellstart
 
-### Option 1: Paketmanager (Prioritätsreihenfolge)
-```bash
-# 1. Bun (Am schnellsten - Empfohlen)
-curl -fsSL https://bun.sh/install | bash
-bun install -g openchamber-desktop
+Der schnellste Weg, OpenChamber Desktop zu installieren, ist über unsere **Einzeilen-Installer**. Sie erkennen Ihr System automatisch, installieren Abhängigkeiten und erstellen optimierte Verknüpfungen.
 
-# 2. pnpm (Schnell)
-npm install -g pnpm
-pnpm add -g openchamber-desktop
+### 📦 Einzeilen-Installer (Empfohlen)
 
-# 3. npm (Standard)
-npm install -g openchamber-desktop
+Führen Sie den folgenden Befehl in Ihrem Terminal aus:
+
+**Windows (PowerShell - Admin):**
+```powershell
+irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install.ps1 | iex
 ```
 
-### Option 2: AppImage (Linux - Portabel)
+**Linux / macOS (Bash):**
 ```bash
-# Ein-Zeilen-Installation
-curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install/install.sh | bash
-
-# Oder manuell:
-wget https://github.com/aencyorganization/openchamber-desktop/releases/latest/download/OpenChamber-Launcher-x86_64.AppImage
-chmod +x OpenChamber-Launcher-x86_64.AppImage
-./OpenChamber-Launcher-x86_64.AppImage
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install.sh | bash
 ```
 
-### Option 3: Systeminstallation (Menü/Apps Integration)
-```bash
-# Nach der Installation über den oben genannten Paketmanager ausführen:
-openchamber-desktop --install-system
+### 🔄 Aktualisierung
 
-# Oder manuell:
-curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install/install.sh | bash
+Um auf die neueste Version zu aktualisieren:
+
+**Windows:**
+```powershell
+irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/update.ps1 | iex
 ```
 
-### Deinstallation
+**Linux / macOS:**
 ```bash
-# Vom System entfernen
-openchamber-desktop --uninstall-system
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/update.sh | bash
+```
 
-# Oder manuell:
-curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall/uninstall.sh | bash
+### 🗑️ Deinstallation
+
+Um OpenChamber Desktop vollständig zu entfernen:
+
+**Windows:**
+```powershell
+irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall.ps1 | iex
+```
+
+**Linux / macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/uninstall.sh | bash
 ```
 
 ---
