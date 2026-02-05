@@ -112,6 +112,34 @@ async function checkPort(port) {
     }
 }
 
+// Enhanced check that verifies the server is actually ready to serve
+async function checkServerReady(port, timeout = 5000) {
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < timeout) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1000);
+            
+            const response = await fetch(`http://localhost:${port}/api/version`, {
+                method: 'GET',
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                return true;
+            }
+        } catch (e) {
+            // Server not ready yet, wait and retry
+            await new Promise(r => setTimeout(r, 200));
+        }
+    }
+    
+    return false;
+}
+
 async function killPort(port) {
     const os = window.NL_OS || 'Linux';
     console.log(`Cleaning up port ${port}`);
@@ -324,21 +352,38 @@ async function autoStart() {
             state.managedPorts.add(port);
             addLog(`Spawned process PID: ${process.pid} on port ${port}`);
             
-            // Step 3: Wait for port to be ready
+            // Step 3: Wait for server to be actually ready (not just port listening)
             updateLoadingStep(3, 'Conectando...');
-            let ready = false;
+            addLog('Waiting for server to be fully ready...');
+            
+            // First check: port is listening
+            let portListening = false;
             for (let i = 0; i < 60; i++) { // Poll for 30 seconds
                 if (await checkPort(port)) {
-                    ready = true;
+                    portListening = true;
                     break;
                 }
                 await new Promise(r => setTimeout(r, 500));
             }
-
-            if (ready) {
-                addLog(`Port ${port} is ready`);
+            
+            if (!portListening) {
+                addLog(`ERROR: Port ${port} did not start listening`);
+                retries++;
+                continue;
+            }
+            
+            addLog(`Port ${port} is listening, checking if server is ready...`);
+            
+            // Second check: server is actually responding to HTTP requests
+            const serverReady = await checkServerReady(port, 15000); // Wait up to 15 seconds
+            
+            if (serverReady) {
+                addLog(`Server on port ${port} is fully ready`);
                 
-                // 7. Version Validation
+                // Small delay to ensure server is stable
+                await new Promise(r => setTimeout(r, 300));
+                
+                // Version Validation
                 try {
                     const vRes = await fetch(`http://localhost:${port}/api/version`);
                     const vData = await vRes.json();
@@ -350,7 +395,7 @@ async function autoStart() {
                     addLog(`Warning: Could not validate version - ${e.message}`);
                 }
 
-                // 8. Origin Validation
+                // Origin Validation
                 addLog('Validating origin...');
                 if (await validateOrigin(port)) {
                     addLog('Origin validation passed');
@@ -362,7 +407,7 @@ async function autoStart() {
                     
                     // Step 4: Connected
                     updateLoadingStep(4, 'Pronto!');
-                    await new Promise(r => setTimeout(r, 500)); // Brief pause to show "Ready"
+                    await new Promise(r => setTimeout(r, 300));
                     
                     connect(port);
                     return;
@@ -370,7 +415,9 @@ async function autoStart() {
                     addLog(`ERROR: Origin validation failed on port ${port}`);
                 }
             } else {
-                addLog(`ERROR: Port ${port} did not become ready in time`);
+                addLog(`ERROR: Server on port ${port} did not become ready in time`);
+                retries++;
+                continue;
             }
         } catch (e) {
             addLog(`ERROR: ${e.message}`);
@@ -389,12 +436,67 @@ async function autoStart() {
 
 function connect(port) {
     const frame = document.getElementById('app-frame');
-    frame.src = `http://localhost:${port}`;
-    document.getElementById('loading-screen').classList.remove('active');
-    document.getElementById('webview-screen').classList.add('active');
-    hideOverlay();
+    const loadingScreen = document.getElementById('loading-screen');
+    const webviewScreen = document.getElementById('webview-screen');
     
-    applyZoom(appConfig.zoomLevel);
+    updateLoadingStep(4, 'Carregando interface...');
+    
+    // Setup load handlers before setting src
+    let loadTimeout;
+    let isLoaded = false;
+    
+    const onLoad = () => {
+        if (isLoaded) return;
+        isLoaded = true;
+        clearTimeout(loadTimeout);
+        
+        addLog('Iframe loaded successfully');
+        
+        // Add loaded class for smooth transition
+        frame.classList.add('loaded');
+        
+        // Small delay for visual smoothness
+        setTimeout(() => {
+            loadingScreen.classList.remove('active');
+            webviewScreen.classList.add('active');
+            hideOverlay();
+            applyZoom(appConfig.zoomLevel);
+        }, 100);
+    };
+    
+    const onError = () => {
+        if (isLoaded) return;
+        isLoaded = true;
+        clearTimeout(loadTimeout);
+        
+        addLog('ERROR: Iframe failed to load');
+        showErrorScreen(
+            'Erro ao Carregar',
+            'A interface não pôde ser carregada. O servidor pode estar indisponível.',
+            'Iframe load error'
+        );
+    };
+    
+    // Set timeout for iframe load (10 seconds)
+    loadTimeout = setTimeout(() => {
+        if (!isLoaded) {
+            addLog('WARNING: Iframe load timeout, showing anyway');
+            // Try to show anyway - might be working but load event didn't fire
+            onLoad();
+        }
+    }, 10000);
+    
+    // Attach handlers
+    frame.onload = onLoad;
+    frame.onerror = onError;
+    
+    // Set src to start loading
+    frame.src = `http://localhost:${port}`;
+    
+    // Fallback: if already cached, onload might not fire
+    if (frame.contentWindow && frame.contentWindow.location.href !== 'about:blank') {
+        setTimeout(onLoad, 100);
+    }
 }
 
 // UI Update Functions

@@ -274,11 +274,18 @@ body {
 /* WebView */
 #webview-screen {
     flex-direction: column;
+    background: #1a1a1a; /* Dark background while loading */
 }
 
 #app-frame {
     width: 100%;
     height: 100%;
     border: none;
-    background: white;
+    background: #1a1a1a; /* Dark background while loading */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#app-frame.loaded {
+    opacity: 1;
 }
