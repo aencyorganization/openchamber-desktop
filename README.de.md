@@ -23,6 +23,20 @@
 
 Der schnellste Weg, OpenChamber Desktop zu installieren, ist über unsere **Einzeilen-Installer**. Sie erkennen Ihr System automatisch, installieren Abhängigkeiten und erstellen optimierte Verknüpfungen.
 
+### 📋 Voraussetzungen
+
+**Sie müssen OpenCode separat installiert haben.** Dieses Skript installiert nur den OpenChamber Desktop Launcher, nicht OpenCode selbst.
+
+Installieren Sie zuerst OpenCode:
+```bash
+# Via Bun (empfohlen)
+curl -fsSL https://bun.sh/install | bash
+bun install -g @openchamber/web
+
+# Oder via npm
+npm install -g @openchamber/web
+```
+
 ### 📦 Einzeilen-Installer (Empfohlen)
 
 Führen Sie den folgenden Befehl in Ihrem Terminal aus:

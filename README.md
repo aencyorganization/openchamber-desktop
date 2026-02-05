@@ -31,6 +31,20 @@
 
 The fastest way to install OpenChamber Desktop is through our **One-Line Installers**. They automatically detect your system, install dependencies, and create optimized shortcuts.
 
+### 📋 Prerequisites
+
+**You need to have OpenCode installed separately.** This script only installs the OpenChamber Desktop launcher, not OpenCode itself.
+
+Install OpenCode first:
+```bash
+# Via Bun (recommended)
+curl -fsSL https://bun.sh/install | bash
+bun install -g @openchamber/web
+
+# Or via npm
+npm install -g @openchamber/web
+```
+
 ### 📦 One-Line Installer (Recommended)
 
 Run the command below in your terminal:
@@ -38,6 +52,11 @@ Run the command below in your terminal:
 **Windows (PowerShell - Admin):**
 ```powershell
 irm https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install.ps1 | iex
+```
+
+**Linux / macOS (Bash):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/aencyorganization/openchamber-desktop/main/scripts/install.sh | bash
 ```
 
 **Linux / macOS (Bash):**

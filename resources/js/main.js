@@ -289,12 +289,12 @@ async function autoStart() {
                 await new Promise(r => setTimeout(r, delay));
                 delay *= 2; // Exponential backoff
             } else {
-                updateLoadingStep(1, 'Procurando OpenChamber...');
+                updateLoadingStep(1, 'Looking for OpenChamber...');
                 addLog('Starting OpenChamber...');
             }
 
             // Step 1: Find available port
-            updateLoadingStep(1, 'Procurando porta disponível...');
+            updateLoadingStep(1, 'Looking for available port...');
             const port = await findAvailablePort(appConfig.preferredPort, END_PORT_RANGE);
             if (!port) {
                 addLog('ERROR: No available ports found in range');
@@ -304,7 +304,7 @@ async function autoStart() {
             addLog(`Found available port: ${port}`);
 
             // Step 2: Spawn process
-            updateLoadingStep(2, 'Iniciando servidor...');
+            updateLoadingStep(2, 'Starting server...');
             
             // Find the executable
             let execPath;
@@ -353,7 +353,7 @@ async function autoStart() {
             addLog(`Spawned process PID: ${process.pid} on port ${port}`);
             
             // Step 3: Wait for server to be actually ready (not just port listening)
-            updateLoadingStep(3, 'Conectando...');
+            updateLoadingStep(3, 'Connecting...');
             addLog('Waiting for server to be fully ready...');
             
             // First check: port is listening
@@ -406,7 +406,7 @@ async function autoStart() {
                     saveConfig();
                     
                     // Step 4: Connected
-                    updateLoadingStep(4, 'Pronto!');
+                    updateLoadingStep(4, 'Ready!');
                     await new Promise(r => setTimeout(r, 300));
                     
                     connect(port);
@@ -429,7 +429,7 @@ async function autoStart() {
     // Show elegant error screen instead of native message box
     showErrorScreen(
         'Falha ao Iniciar',
-        'Não foi possível iniciar o OpenChamber. Verifique se está instalado e disponível no PATH.',
+        'Could not start OpenChamber. Please check if it is installed and available in PATH.',
         logs.join('\n')
     );
 }
@@ -439,7 +439,7 @@ function connect(port) {
     const loadingScreen = document.getElementById('loading-screen');
     const webviewScreen = document.getElementById('webview-screen');
     
-    updateLoadingStep(4, 'Carregando interface...');
+    updateLoadingStep(4, 'Loading interface...');
     
     // Setup load handlers before setting src
     let loadTimeout;
@@ -471,7 +471,7 @@ function connect(port) {
         
         addLog('ERROR: Iframe failed to load');
         showErrorScreen(
-            'Erro ao Carregar',
+            'Error Loading',
             'A interface não pôde ser carregada. O servidor pode estar indisponível.',
             'Iframe load error'
         );
@@ -532,8 +532,8 @@ function showErrorScreen(title, message, logs = '') {
     const msgEl = document.getElementById('error-message');
     const logsEl = document.getElementById('error-logs');
     
-    if (titleEl) titleEl.textContent = title || 'Erro ao Iniciar';
-    if (msgEl) msgEl.textContent = message || 'Não foi possível estabelecer conexão com o sistema.';
+    if (titleEl) titleEl.textContent = title || 'Error Starting';
+    if (msgEl) msgEl.textContent = message || 'Could not establish connection with the system.';
     if (logsEl && logs) {
         logsEl.querySelector('pre').textContent = logs;
     }
